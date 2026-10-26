@@ -370,11 +370,14 @@ function lerJson(t){const m=t.match(/\[[\s\S]*\]/);if(!m)throw {code:'sem_json'}
 function b64(c){return c.toDataURL('image/jpeg',.85).split(',')[1]}
 const gk=()=>{try{return localStorage.getItem('fc27-gkey')||''}catch(e){return ''}};
 const gm=()=>{try{return localStorage.getItem('fc27-gmodel')||'gemini-3.8-flash'}catch(e){return 'gemini-3.8-flash'}};
-async function gemini(prompt,canvas){
+const FALL=['gemini-3.5-flash-lite','gemini-3.6-flash','gemini-3.1-flash-lite'];
+const espera=ms=>new Promise(r=>setTimeout(r,ms));
+let falhas=0;
+async function gemini1(prompt,canvas,model){
   const k=gk();if(!k)throw {code:'sem_chave'};
   let r;
   try{
-    r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(gm())+':generateContent',{
+    r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent',{
       method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':k},
       body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:'image/jpeg',data:b64(canvas)}}]}],generationConfig:{temperature:0,responseMimeType:'application/json'}})
     });
@@ -384,31 +387,55 @@ async function gemini(prompt,canvas){
   const parts=(((j.candidates||[])[0]||{}).content||{}).parts||[];
   return parts.filter(p=>p.text&&!p.thought).map(p=>p.text).join('');
 }
-const espera=ms=>new Promise(r=>setTimeout(r,ms));
-async function lerPrints(fs,prompt,st){
-  const out=[];
+async function gemini(prompt,canvas,st){
+  const ms=[gm(),...FALL.filter(m=>m!==gm())],temp=['rede','http_500','http_503','http_504','http_429'];
+  let ult=null;
+  for(let ronda=0;ronda<2;ronda++){
+    for(let i=0;i<ms.length;i++){
+      try{return await gemini1(prompt,canvas,ms[i])}
+      catch(e){
+        ult=e;const c=e&&e.code;
+        if(i>0&&c==='http_404')continue;
+        if(!temp.includes(c))throw e;
+        st.textContent='O Gemini está ocupado. A tentar outro modelo…';
+        await espera(1500);
+      }
+    }
+    if(ronda===0){st.textContent='Todos ocupados. A tentar de novo dentro de 6 segundos…';await espera(6000)}
+  }
+  throw ult;
+}
+async function lerPrints(fs,prompt,st,estrito){
+  const out=[];falhas=0;let ult=null;
   for(let i=0;i<fs.length;i++){
     st.textContent='A ler o print '+(i+1)+' de '+fs.length+'…';
-    const cv=await reduz(fs[i]);
-    const txt=await gemini(prompt,cv.canvas);
-    lerJson(txt).forEach(x=>{
-      let f=null,foto='';
-      const bx=Array.isArray(x.caixa)?x.caixa.map(Number):null;
-      if(bx&&bx.length===4&&bx.every(v=>v>=0&&v<=1000)){f=[bx[1]/1000,bx[0]/1000,(bx[3]-bx[1])/1000,(bx[2]-bx[0])/1000]}
-      if(f&&f.every(v=>v>=0&&v<=1)&&f[2]>.04&&f[3]>.04){
-        const W=cv.canvas.width,H=cv.canvas.height;
-        try{foto=thumb(cv.canvas,f[0]*W,f[1]*H,Math.min(f[2],1-f[0])*W,Math.min(f[3],1-f[1])*H)}catch(e){}
-      }
-      out.push({...x,foto});
-    });
+    try{
+      const cv=await reduz(fs[i]);
+      const txt=await gemini(prompt,cv.canvas,st);
+      lerJson(txt).forEach(x=>{
+        let f=null,foto='';
+        const bx=Array.isArray(x.caixa)?x.caixa.map(Number):null;
+        if(bx&&bx.length===4&&bx.every(v=>v>=0&&v<=1000)){f=[bx[1]/1000,bx[0]/1000,(bx[3]-bx[1])/1000,(bx[2]-bx[0])/1000]}
+        if(f&&f.every(v=>v>=0&&v<=1)&&f[2]>.04&&f[3]>.04){
+          const W=cv.canvas.width,H=cv.canvas.height;
+          try{foto=thumb(cv.canvas,f[0]*W,f[1]*H,Math.min(f[2],1-f[0])*W,Math.min(f[3],1-f[1])*H)}catch(e){}
+        }
+        out.push({...x,foto});
+      });
+    }catch(e){
+      if(estrito||['sem_chave','http_400','http_401','http_403','http_404'].includes(e&&e.code))throw e;
+      falhas++;ult=e;
+    }
     if(i<fs.length-1)await espera(2000);
   }
+  if(!out.length&&ult)throw ult;
   return out;
 }
 const erro=e=>{const c=e&&e.code;
   if(c==='sem_chave')return 'Falta a chave do Gemini. Vai a Dados, em Leitura de prints, e cola a chave.';
   if(c==='rede')return 'Sem ligação, ou o pedido foi bloqueado. Tenta de novo.';
   if(c==='http_429')return 'Atingiste o limite gratuito. Espera um minuto e tenta com menos prints.';
+  if(c==='http_503')return 'O Gemini está sobrecarregado agora (503). A app já tentou outros modelos. Tenta daqui a uns minutos.';
   if(c==='http_404')return 'O modelo não existe (404). Muda o nome do modelo em Dados.';
   if(/^http_(400|401|403)$/.test(c||''))return 'A chave ou o modelo não foram aceites ('+c.slice(5)+'). Confirma a chave e o modelo em Dados.';
   return 'Não consegui ler os prints ('+(c||'erro')+'). Tenta com um print de cada vez.'};
@@ -425,7 +452,7 @@ $('fotos').onchange=async()=>{
     pend=raw.map(x=>({nome:String(x.nome||'').trim(),rating:+x.rating||0,pos:String(x.posicao||''),foto:x.foto,venda:+x.vendido||0,lucro:+x.lucro,sold:x.estado==='vendido'&&+x.vendido>0&&x.lucro!==null&&x.lucro!==undefined&&!isNaN(+x.lucro)})).filter(x=>x.nome);
     pend.forEach(x=>{x.dup=x.sold&&trades.some(t=>t.nome===x.nome&&t.venda===x.venda&&lucro(t)===x.lucro)});
     const vs=pend.filter(x=>x.sold);
-    st.textContent=vs.length+(vs.length===1?' venda encontrada':' vendas encontradas')+'. Confirma e adiciona.';
+    st.textContent=vs.length+(vs.length===1?' venda encontrada':' vendas encontradas')+'. Confirma e adiciona.'+(falhas?' ('+falhas+(falhas===1?' print falhou':' prints falharam')+'. Importa-o(s) outra vez.)':'');
     $('pv').innerHTML=vs.length?vs.map(x=>`<label style="display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);color:var(--ink);font-size:14px"><input type="checkbox" style="width:auto;margin:0" data-i="${pend.indexOf(x)}" ${x.dup?'':'checked'}><span>${esc(lab(x))} · ${num(x.venda)} · <b class="${cls(x.lucro)}">${fmt(x.lucro)}</b>${x.dup?' · já registada':''}</span></label>`).join('')+'<button class="go" id="add" style="margin-top:12px">Adicionar selecionadas</button>':'';
     if(vs.length)$('add').onclick=()=>{
       const ok=new Set([...$('pv').querySelectorAll('input:checked')].map(i=>+i.dataset.i));
@@ -444,7 +471,7 @@ $('fotos').onchange=async()=>{
 $('fotosL').onchange=async()=>{
   const fs=[...$('fotosL').files],st=$('stL');if(!fs.length)return;
   try{
-    const raw=await lerPrints(fs,P_LISTA,st),items=[],vistos=new Set();
+    const raw=await lerPrints(fs,P_LISTA,st,true),items=[],vistos=new Set();
     raw.forEach(x=>{
       const o={nome:String(x.nome||'').trim(),rating:+x.rating||0,pos:String(x.posicao||''),estado:x.estado==='expirado'?'expirado':'ativo',inicio:+x.inicio||0,comprarJa:+x.comprarJa||0,mercado:+x.mercado||0,foto:x.foto};
       const k=[o.nome,o.rating,o.pos,o.inicio,o.comprarJa].join('|');
