@@ -84,6 +84,11 @@ button:focus-visible,input:focus-visible,summary:focus-visible,label:focus-withi
 .fab svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .pop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10;display:flex;align-items:flex-end;justify-content:center}
 .sheet{width:100%;max-width:640px;background:var(--card);border-radius:24px 24px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:4px;resize:vertical}
+.sug{background:var(--card2);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:-4px}
+.sg{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;font:inherit;color:inherit;background:none;border:0;border-top:1px solid var(--line);padding:11px 12px;cursor:pointer}
+.sg:first-child{border-top:0}
+.sg small{color:var(--mute);font-size:12px;text-align:right}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -98,6 +103,16 @@ button:focus-visible,input:focus-visible,summary:focus-visible,label:focus-withi
 <div class="between"><small id="hn"></small><button class="chip" id="vdia">Ver o dia</button></div>
 </div>
 
+<div class="card"><h2>Registar venda</h2>
+<form id="f">
+<label class="full">Jogador<input id="nome" required autocomplete="off" placeholder="Começa a escrever o nome"></label>
+<div class="sug full" id="sug" hidden></div>
+<datalist id="nomes"></datalist>
+<label>Vendido por<input id="venda" type="number" inputmode="numeric" min="0" required></label>
+<label>Lucro (Net Profit)<input id="lucro" type="number" inputmode="numeric" required></label>
+<p class="note full" id="prev" style="margin:0;min-height:18px"></p>
+<button class="go full" type="submit">Guardar venda</button>
+</form></div>
 <div class="card">
 <label class="go" for="fotos">Importar vendas (print)</label>
 <input class="vh" type="file" id="fotos" accept="image/*" multiple>
@@ -116,15 +131,6 @@ button:focus-visible,input:focus-visible,summary:focus-visible,label:focus-withi
 
 <div class="card"><div class="between"><h2>Melhores jogadores</h2><button class="chip" data-go="jo">Ver todos</button></div><div id="top"></div></div>
 
-<div class="card"><details><summary>Registar venda à mão</summary>
-<form id="f" style="margin-top:12px">
-<label class="full">Jogador<input id="nome" list="nomes" required autocomplete="off" placeholder="Ex.: Rice · 88 CDM"></label>
-<datalist id="nomes"></datalist>
-<label>Vendido por<input id="venda" type="number" inputmode="numeric" min="0" required></label>
-<label>Lucro (Net Profit)<input id="lucro" type="number" inputmode="numeric" required></label>
-<p class="note full" id="prev" style="margin:0;min-height:18px"></p>
-<button class="go full" type="submit">Guardar venda</button>
-</form></details></div>
 </section>
 
 <section id="ca" hidden>
@@ -159,9 +165,13 @@ button:focus-visible,input:focus-visible,summary:focus-visible,label:focus-withi
 </div>
 <input id="busca" placeholder="Procurar jogador" aria-label="Procurar jogador">
 <div id="jl" style="margin-top:6px"></div>
-<p class="note">Toca na foto de um jogador para a mudar.</p>
-<input class="vh" type="file" id="pf" accept="image/*">
 </div>
+<div class="card"><details><summary>Adicionar vários jogadores</summary>
+<p class="note">Um jogador por linha. Podes escrever só o nome ou "Nome · 88 CDM". Opcional: a seguir a ponto e vírgula, o preço de venda e o lucro habituais, para aparecerem na página inicial.</p>
+<label class="full" style="margin-top:10px">Lista<textarea id="bulk" rows="8" placeholder="Rice · 88 CDM; 17500; 2875&#10;Fermín · 85 CAM; 4400; 1180&#10;Semenyo"></textarea></label>
+<button class="go" id="bulkgo" style="margin-top:10px">Adicionar à lista</button>
+<p class="note" id="bst"></p>
+</details></div>
 <div class="card"><details><summary>Adicionar jogador</summary>
 <form id="fj" style="margin-top:12px">
 <label class="full">Nome<input id="pn" required autocomplete="off"></label>
@@ -210,6 +220,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible,label:focus-withi
 <small style="color:var(--mute)">Lista por</small><b class="big pos" id="pbig"></b>
 <p class="note" id="pexp" style="margin:0 0 12px"></p>
 <div class="opts" id="popts"></div>
+<button class="go" id="pcopy" style="margin-top:12px">Copiar preço</button>
 <p class="note" id="ptip" hidden>Dica: acima de 100k, listar em 102k, 202k, 302k… pode parecer um snipe.</p>
 </div>
 </div>
@@ -227,7 +238,7 @@ const KEY='fc27-trades',CK='fc27-cat';
 const ld=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
 let trades=ld(KEY,[]),cat=ld(CK,{}),lista=ld('fc27-lista',{t:0,items:[]}),corte=0,pend=[],ord='vendas',cal=null,vista='ov',ant='ov',diaAb=null,rm=null,fotoPara=null,AG={},PD={},HOJE='';
 try{corte=+localStorage.getItem('fc27-corte')||0}catch(e){}
-Object.keys(cat).forEach(k=>{if(!cat[k]||typeof cat[k]!=='object')cat[k]={}});
+Object.keys(cat).forEach(k=>{if(!cat[k]||typeof cat[k]!=='object')cat[k]={};delete cat[k].foto});
 if(!lista.items)lista.items=[];
 const $=id=>document.getElementById(id);
 const fmt=n=>(n>0?'+':'')+Math.round(n).toLocaleString('pt-PT');
@@ -242,7 +253,7 @@ const SH=5*36e5,sd=d=>new Date(new Date(d).getTime()-SH),kr=d=>d.getFullYear()+'
 const kd=k=>{const p=k.split('-').map(Number);return new Date(p[0],p[1],p[2])};
 const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(trades));localStorage.setItem(CK,JSON.stringify(cat));localStorage.setItem('fc27-lista',JSON.stringify(lista));localStorage.setItem('fc27-corte',corte)}catch(e){}};
-const av=k=>{const f=cat[k]&&cat[k].foto;return f?`<img class="av" src="${f}" alt="">`:`<span class="av ph">${esc(parse(k).nome.slice(0,1).toUpperCase())}</span>`};
+const av=k=>'';
 const vazio=t=>`<p class="note" style="margin:6px 0">${t}</p>`;
 
 function ir(id){
@@ -326,7 +337,7 @@ function renderJog(arr){
   L.sort((a,b)=>ord==='az'?a.k.localeCompare(b.k):ord==='lucro'?b.l-a.l||b.n-a.n:b.n-a.n||b.l-a.l||a.k.localeCompare(b.k));
   $('jl').innerHTML=L.length?L.map(p=>{
     const armado=rm==='p'+p.k;
-    return `<div class="row"><button class="avb" data-pf="${esc(p.k)}" aria-label="Mudar foto">${av(p.k)}</button><div class="tx"><b>${esc(p.k)}</b><small>${p.n?p.n+(p.n===1?' venda':' vendas')+' · '+fmt(p.l):'Sem vendas'}</small></div><button class="x ${armado?'arm':''}" data-rm="${esc(p.k)}">${armado?(p.n?'Apagar + '+p.n+' vendas?':'Apagar?'):'Remover'}</button></div>`;
+    return `<div class="row"><div class="tx"><b>${esc(p.k)}</b><small>${p.n?p.n+(p.n===1?' venda':' vendas')+' · '+fmt(p.l):'Sem vendas'}</small></div><button class="x ${armado?'arm':''}" data-rm="${esc(p.k)}">${armado?(p.n?'Apagar + '+p.n+' vendas?':'Apagar?'):'Remover'}</button></div>`;
   }).join(''):vazio('Nenhum jogador encontrado.');
   $('nomes').innerHTML=keys.map(k=>`<option value="${esc(k)}">`).join('');
   document.querySelectorAll('[data-o]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.o===ord));
@@ -361,10 +372,6 @@ async function reduz(f){
   const c=document.createElement('canvas');c.width=Math.round(bmp.width*s);c.height=Math.round(bmp.height*s);
   c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);
   return {canvas:c,blob:await new Promise(r=>c.toBlob(r,'image/jpeg',.85))};
-}
-function thumb(src,sx,sy,sw,sh){
-  const w=80,h=Math.max(40,Math.min(120,Math.round(w*sh/sw))),c=document.createElement('canvas');
-  c.width=w;c.height=h;c.getContext('2d').drawImage(src,sx,sy,sw,sh,0,0,w,h);return c.toDataURL('image/jpeg',.72);
 }
 function lerJson(t){const m=t.match(/\[[\s\S]*\]/);if(!m)throw {code:'sem_json'};return JSON.parse(m[0])}
 function b64(c){return c.toDataURL('image/jpeg',.85).split(',')[1]}
@@ -420,14 +427,7 @@ async function lerPrints(fs,prompt,st,estrito){
         try{arr=lerJson(txt);break}catch(e){if(t)throw {code:'json'}}
       }
       arr.forEach(x=>{
-        let f=null,foto='';
-        const bx=Array.isArray(x.caixa)?x.caixa.map(Number):null;
-        if(bx&&bx.length===4&&bx.every(v=>v>=0&&v<=1000)){f=[bx[1]/1000,bx[0]/1000,(bx[3]-bx[1])/1000,(bx[2]-bx[0])/1000]}
-        if(f&&f.every(v=>v>=0&&v<=1)&&f[2]>.04&&f[3]>.04){
-          const W=cv.canvas.width,H=cv.canvas.height;
-          try{foto=thumb(cv.canvas,f[0]*W,f[1]*H,Math.min(f[2],1-f[0])*W,Math.min(f[3],1-f[1])*H)}catch(e){}
-        }
-        out.push({...x,foto});
+        out.push({...x});
       });
     }catch(e){
       if(estrito||['sem_chave','http_400','http_401','http_403','http_404'].includes(e&&e.code))throw e;
@@ -448,10 +448,9 @@ const erro=e=>{const c=e&&e.code;
   if(c==='http_404')return 'O modelo não existe (404). Muda o nome do modelo em Dados.';
   if(/^http_(400|401|403)$/.test(c||''))return 'A chave ou o modelo não foram aceites ('+c.slice(5)+'). Confirma a chave e o modelo em Dados.';
   return 'Não consegui ler os prints ('+(c||'erro')+'). Tenta com um print de cada vez.'};
-const FT='caixa ([ymin,xmin,ymax,xmax] normalizada de 0 a 1000 na imagem, a envolver só a carta do jogador que aparece à esquerda do cartão)';
-const P_VENDAS='Esta é uma captura do ecrã Transfer List do EA FC. Para cada cartão de jogador visível devolve um objeto com: nome, rating (número grande no cartão), posicao (ex.: CDM), estado ("vendido" sempre que o cartão mostre Sold For e Net Profit, mesmo que o cabeçalho Sold Items não esteja visível, senão "ativo"), vendido (valor de Sold For, ou 0), lucro (valor de Net Profit com sinal, ou null), '+FT+'. Números sem separadores. Responde apenas com um array JSON, sem mais texto.';
-const P_LISTA='Esta é uma captura do ecrã Transfer List do EA FC. Considera só os cartões ainda por vender e ignora a secção Sold Items (cartões com Sold For e Net Profit). Para cada cartão devolve um objeto com: nome, rating (número grande no cartão), posicao (ex.: CDM), estado ("expirado" se o tempo é Expired, senão "ativo"), inicio (Start Price), comprarJa (Buy Now), mercado (Market Price, ou 0), '+FT+'. Números sem separadores. Responde apenas com um array JSON, sem mais texto.';
-function guardaFoto(k,x){cat[k]=cat[k]||{};if(x.foto&&!cat[k].foto)cat[k].foto=x.foto}
+const P_VENDAS='Esta é uma captura do ecrã Transfer List do EA FC. Para cada cartão de jogador visível devolve um objeto com: nome, rating (número grande no cartão), posicao (ex.: CDM), estado ("vendido" sempre que o cartão mostre Sold For e Net Profit, mesmo que o cabeçalho Sold Items não esteja visível, senão "ativo"), vendido (valor de Sold For, ou 0), lucro (valor de Net Profit com sinal, ou null). Números sem separadores. Responde apenas com um array JSON, sem mais texto.';
+const P_LISTA='Esta é uma captura do ecrã Transfer List do EA FC. Considera só os cartões ainda por vender e ignora a secção Sold Items (cartões com Sold For e Net Profit). Para cada cartão devolve um objeto com: nome, rating (número grande no cartão), posicao (ex.: CDM), estado ("expirado" se o tempo é Expired, senão "ativo"), inicio (Start Price), comprarJa (Buy Now), mercado (Market Price, ou 0). Números sem separadores. Responde apenas com um array JSON, sem mais texto.';
+function guardaFoto(k,x){cat[k]=cat[k]||{}}
 
 $('fotos').onchange=async()=>{
   const fs=[...$('fotos').files],st=$('st');if(!fs.length)return;
@@ -504,19 +503,10 @@ document.addEventListener('click',e=>{
   else if(t.dataset.j!==undefined){const p=window._ds[+t.dataset.j];if(p)junta(p[0],p[1])}
   else if(t.dataset.rm){const k=t.dataset.rm;tap2('p'+k,()=>apaga(k))}
   else if(t.dataset.id){const id=t.dataset.id;tap2('v'+id,()=>{trades=trades.filter(x=>String(x.id)!==id);save();refresh()})}
-  else if(t.dataset.pf){fotoPara=t.dataset.pf;$('pf').click()}
   else if(t.dataset.usa){$('pb').value=t.dataset.usa;renderPreco()}
   else if(t.dataset.sel){pSel=+t.dataset.sel;renderPreco()}
+  else if(t.dataset.sg!==undefined){escolhe(t.dataset.sg)}
 });
-$('pf').onchange=async e=>{
-  const f=e.target.files[0];if(!f||!fotoPara)return;
-  try{
-    const b=await createImageBitmap(f),r=.8;let sx=0,sy=0,sw=b.width,sh=b.height;
-    if(sw/sh>r){const nw=sh*r;sx=(sw-nw)/2;sw=nw}else{const nh=sw/r;sy=(sh-nh)/2;sh=nh}
-    cat[fotoPara]=cat[fotoPara]||{};cat[fotoPara].foto=thumb(b,sx,sy,sw,sh);save();render();
-  }catch(err){}
-  e.target.value='';
-};
 $('busca').oninput=render;
 $('vdia').onclick=()=>abreDia(HOJE);
 $('m1').onclick=()=>abreDia(dk(new Date(Date.now()-864e5)));
@@ -525,7 +515,7 @@ $('cp').onclick=()=>{cal.m--;if(cal.m<0){cal.m=11;cal.y--}render()};
 $('cn').onclick=()=>{cal.m++;if(cal.m>11){cal.m=0;cal.y++}render()};
 function prev(){const l=$('lucro').value,v=+$('venda').value;$('prev').textContent=(l!==''&&v)?'Compra estimada: '+num(Math.floor(v*0.95)-(+l))+' moedas':''}
 $('lucro').oninput=prev;$('venda').oninput=prev;
-$('f').onsubmit=e=>{e.preventDefault();const p=parse($('nome').value);trades.push({id:Date.now()+Math.random(),...p,compra:Math.floor(+$('venda').value*0.95)-(+$('lucro').value),venda:+$('venda').value,data:new Date().toISOString()});const k=lab(p);cat[k]=cat[k]||{};save();e.target.reset();prev();render()};
+$('f').onsubmit=e=>{e.preventDefault();const p=parse($('nome').value);trades.push({id:Date.now()+Math.random(),...p,compra:Math.floor(+$('venda').value*0.95)-(+$('lucro').value),venda:+$('venda').value,data:new Date().toISOString()});const k=lab(p);cat[k]=cat[k]||{};save();e.target.reset();prev();render();$('sug').hidden=true;$('prev').textContent='Venda guardada ✓'};
 $('fj').onsubmit=e=>{e.preventDefault();const p={nome:$('pn').value.trim(),rating:+$('pr').value||0,pos:$('pp').value.trim().toUpperCase()},k=lab(p);if(p.nome){cat[k]=cat[k]||{};save();e.target.reset();render()}};
 function dupla(id,fn){const b=$(id),t0=b.textContent;let a=0,tm;b.onclick=()=>{if(a){clearTimeout(tm);a=0;b.textContent=t0;fn();return}a=1;b.textContent='Toca de novo';tm=setTimeout(()=>{a=0;b.textContent=t0},4000)}}
 dupla('novo',()=>{corte=Date.now();save();render()});
@@ -556,7 +546,7 @@ function renderPreco(){
   if(!(B>0)){$('pres').hidden=true;return}
   const s=sugere(B),o=s.opts[pSel],net=Math.floor(o.p*0.95)-B;
   $('pres').hidden=false;
-  $('pbig').textContent=num(o.p);
+  $('pbig').textContent=num(o.p);$('pcopy').textContent='Copiar '+o.p;
   $('pexp').textContent='Lucro líquido '+fmt(net)+' ('+(net/B*100).toFixed(1).replace('.',',')+'%) depois da taxa de 5%';
   $('popts').innerHTML=s.opts.map((x,i)=>`<button class="chip" data-sel="${i}" aria-pressed="${i===pSel}">${x.n}<br><b>${num(x.p)}</b></button>`).join('');
   $('ptip').hidden=o.p<100000;
@@ -585,19 +575,71 @@ $('rest').onchange=async e=>{
     if(!d||d.v!==1||!Array.isArray(d.trades))throw 0;
     const ids=new Set(trades.map(t=>String(t.id))),novas=d.trades.filter(t=>t&&t.nome&&!ids.has(String(t.id)));
     trades=trades.concat(novas);cat=Object.assign({},d.cat||{},cat);
-    Object.keys(cat).forEach(k=>{if(!cat[k]||typeof cat[k]!=='object')cat[k]={}});
+    Object.keys(cat).forEach(k=>{if(!cat[k]||typeof cat[k]!=='object')cat[k]={};delete cat[k].foto});
     if(d.lista&&d.lista.items&&d.lista.t>(lista.t||0))lista=d.lista;
     save();render();st.textContent=novas.length+' vendas restauradas. Nada do que já tinhas foi apagado.';
   }catch(err){st.textContent='Este ficheiro não parece ser uma cópia desta app.'}
   e.target.value='';
 };
 
+function ultima(k){
+  let u=null;trades.forEach(t=>{if(lab(t)===k&&(!u||t.data>u.data))u=t});
+  if(u)return {venda:u.venda,lucro:lucro(u),real:true};
+  const c=cat[k]||{};
+  if(c.venda&&c.lucro!==undefined&&c.lucro!=='')return {venda:c.venda,lucro:c.lucro,real:false};
+  return null;
+}
+function renderSug(){
+  const q=norm($('nome').value),box=$('sug');
+  if(!q){box.hidden=true;return}
+  const keys=[...new Set([...Object.keys(cat),...Object.keys(AG)])].filter(k=>norm(k).includes(q))
+    .sort((a,b)=>(AG[b]?AG[b].n:0)-(AG[a]?AG[a].n:0)||a.localeCompare(b)).slice(0,6);
+  if(!keys.length||(keys.length===1&&keys[0]===$('nome').value.trim())){box.hidden=true;return}
+  box.innerHTML=keys.map(k=>{const u=ultima(k);return `<button type="button" class="sg" data-sg="${esc(k)}"><b>${esc(k)}</b><small>${u?(u.real?'Última venda ':'Preço guardado ')+num(u.venda)+' · <span class="'+cls(u.lucro)+'">'+fmt(u.lucro)+'</span>':'Sem vendas ainda'}</small></button>`}).join('');
+  box.hidden=false;
+}
+function escolhe(k){
+  $('nome').value=k;$('sug').hidden=true;
+  const u=ultima(k);
+  if(u){$('venda').value=u.venda;$('lucro').value=u.lucro}
+  prev();$('venda').focus();
+}
+$('nome').oninput=renderSug;
+document.addEventListener('click',e=>{if(!e.target.closest('#sug')&&e.target.id!=='nome')$('sug').hidden=true});
+function parseLinha(t){
+  let p=parse(t);
+  if(!p.rating){const m=t.trim().match(/^(.*\S)\s+(\d{2})\s+([A-Za-z]{2,3})$/);if(m)p={nome:m[1],rating:+m[2],pos:m[3].toUpperCase()}}
+  return p;
+}
+$('bulkgo').onclick=()=>{
+  const linhas=$('bulk').value.split('\n').map(x=>x.trim()).filter(Boolean);let n=0;
+  linhas.forEach(l=>{
+    const a=l.split(';').map(x=>x.trim()),p=parseLinha(a[0]);
+    if(!p.nome)return;
+    const k=lab(p);cat[k]=cat[k]||{};
+    if(a[1]&&!isNaN(+a[1]))cat[k].venda=+a[1];
+    if(a[2]!==undefined&&a[2]!==''&&!isNaN(+a[2]))cat[k].lucro=+a[2];
+    n++;
+  });
+  save();render();$('bulk').value='';$('bst').textContent=n+(n===1?' jogador guardado.':' jogadores guardados.');
+};
+$('pcopy').onclick=async()=>{
+  const B=+$('pb').value;if(!(B>0))return;
+  const v=String(sugere(B).opts[pSel].p);let ok=false;
+  try{await navigator.clipboard.writeText(v);ok=true}
+  catch(e){const t=document.createElement('textarea');t.value=v;document.body.appendChild(t);t.select();try{ok=document.execCommand('copy')}catch(e2){}t.remove()}
+  $('pcopy').textContent=ok?'Copiado ✓ '+v:'Não consegui copiar';
+  setTimeout(renderPreco,2000);
+};
+function limpaCalc(){if($('pb').value){$('pb').value='';pSel=1;renderPreco()}}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)limpaCalc()});
+window.addEventListener('pagehide',limpaCalc);
 function showKey(){$('gst').textContent=gk()?'Chave guardada neste telemóvel.':'Ainda sem chave.';$('gmodel').value=gm()}
 $('gsave').onclick=()=>{const k=$('gkey').value.trim(),m=$('gmodel').value.trim()||'gemini-3.8-flash';try{if(k)localStorage.setItem('fc27-gkey',k);localStorage.setItem('fc27-gmodel',m)}catch(e){}$('gkey').value='';showKey()};
 $('gdel').onclick=()=>{try{localStorage.removeItem('fc27-gkey')}catch(e){}showKey()};
 showKey();
 setInterval(render,6e4);document.addEventListener('visibilitychange',render);
-render();ir('ov');
+save();render();ir('ov');
 </script>
 </body>
 </html>
