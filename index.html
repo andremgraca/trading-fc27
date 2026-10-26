@@ -372,7 +372,7 @@ const gk=()=>{try{return localStorage.getItem('fc27-gkey')||''}catch(e){return '
 const gm=()=>{try{return localStorage.getItem('fc27-gmodel')||'gemini-3.8-flash'}catch(e){return 'gemini-3.8-flash'}};
 const FALL=['gemini-3.5-flash-lite','gemini-3.6-flash','gemini-3.1-flash-lite'];
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
-let falhas=0;
+let falhas=0,falhasInfo=[];
 async function gemini1(prompt,canvas,model){
   const k=gk();if(!k)throw {code:'sem_chave'};
   let r;
@@ -384,7 +384,10 @@ async function gemini1(prompt,canvas,model){
   }catch(e){throw {code:'rede'}}
   if(!r.ok)throw {code:'http_'+r.status};
   const j=await r.json();
-  const parts=(((j.candidates||[])[0]||{}).content||{}).parts||[];
+  if(j.promptFeedback&&j.promptFeedback.blockReason)throw {code:'bloqueado'};
+  const cand=(j.candidates||[])[0];if(!cand)throw {code:'vazio'};
+  const parts=(cand.content||{}).parts||[];
+  if(!parts.some(p=>p.text))throw {code:'fim_'+(cand.finishReason||'vazio')};
   return parts.filter(p=>p.text&&!p.thought).map(p=>p.text).join('');
 }
 async function gemini(prompt,canvas,st){
@@ -406,13 +409,17 @@ async function gemini(prompt,canvas,st){
   throw ult;
 }
 async function lerPrints(fs,prompt,st,estrito){
-  const out=[];falhas=0;let ult=null;
+  const out=[];falhas=0;falhasInfo=[];let ult=null;
   for(let i=0;i<fs.length;i++){
     st.textContent='A ler o print '+(i+1)+' de '+fs.length+'…';
     try{
       const cv=await reduz(fs[i]);
-      const txt=await gemini(prompt,cv.canvas,st);
-      lerJson(txt).forEach(x=>{
+      let arr;
+      for(let t=0;t<2;t++){
+        const txt=await gemini(prompt+(t?' Responde apenas com o array JSON completo, sem mais texto.':''),cv.canvas,st);
+        try{arr=lerJson(txt);break}catch(e){if(t)throw {code:'json'}}
+      }
+      arr.forEach(x=>{
         let f=null,foto='';
         const bx=Array.isArray(x.caixa)?x.caixa.map(Number):null;
         if(bx&&bx.length===4&&bx.every(v=>v>=0&&v<=1000)){f=[bx[1]/1000,bx[0]/1000,(bx[3]-bx[1])/1000,(bx[2]-bx[0])/1000]}
@@ -424,7 +431,7 @@ async function lerPrints(fs,prompt,st,estrito){
       });
     }catch(e){
       if(estrito||['sem_chave','http_400','http_401','http_403','http_404'].includes(e&&e.code))throw e;
-      falhas++;ult=e;
+      falhas++;ult=e;falhasInfo.push('print '+(i+1)+': '+((e&&e.code)||'erro'));
     }
     if(i<fs.length-1)await espera(2000);
   }
@@ -435,12 +442,14 @@ const erro=e=>{const c=e&&e.code;
   if(c==='sem_chave')return 'Falta a chave do Gemini. Vai a Dados, em Leitura de prints, e cola a chave.';
   if(c==='rede')return 'Sem ligação, ou o pedido foi bloqueado. Tenta de novo.';
   if(c==='http_429')return 'Atingiste o limite gratuito. Espera um minuto e tenta com menos prints.';
+  if(c==='json')return 'A resposta veio num formato inesperado. Tenta importar este print outra vez.';
+  if(c==='bloqueado'||c==='vazio'||/^fim_/.test(c||''))return 'O Gemini não devolveu resposta para este print ('+c+'). Tenta outra vez ou com um print mais recortado.';
   if(c==='http_503')return 'O Gemini está sobrecarregado agora (503). A app já tentou outros modelos. Tenta daqui a uns minutos.';
   if(c==='http_404')return 'O modelo não existe (404). Muda o nome do modelo em Dados.';
   if(/^http_(400|401|403)$/.test(c||''))return 'A chave ou o modelo não foram aceites ('+c.slice(5)+'). Confirma a chave e o modelo em Dados.';
   return 'Não consegui ler os prints ('+(c||'erro')+'). Tenta com um print de cada vez.'};
 const FT='caixa ([ymin,xmin,ymax,xmax] normalizada de 0 a 1000 na imagem, a envolver só a carta do jogador que aparece à esquerda do cartão)';
-const P_VENDAS='Esta é uma captura do ecrã Transfer List do EA FC. Para cada cartão de jogador visível devolve um objeto com: nome, rating (número grande no cartão), posicao (ex.: CDM), estado ("vendido" se está em Sold Items com Net Profit, senão "ativo"), vendido (valor de Sold For, ou 0), lucro (valor de Net Profit com sinal, ou null), '+FT+'. Números sem separadores. Responde apenas com um array JSON, sem mais texto.';
+const P_VENDAS='Esta é uma captura do ecrã Transfer List do EA FC. Para cada cartão de jogador visível devolve um objeto com: nome, rating (número grande no cartão), posicao (ex.: CDM), estado ("vendido" sempre que o cartão mostre Sold For e Net Profit, mesmo que o cabeçalho Sold Items não esteja visível, senão "ativo"), vendido (valor de Sold For, ou 0), lucro (valor de Net Profit com sinal, ou null), '+FT+'. Números sem separadores. Responde apenas com um array JSON, sem mais texto.';
 const P_LISTA='Esta é uma captura do ecrã Transfer List do EA FC. Considera só os cartões ainda por vender e ignora a secção Sold Items (cartões com Sold For e Net Profit). Para cada cartão devolve um objeto com: nome, rating (número grande no cartão), posicao (ex.: CDM), estado ("expirado" se o tempo é Expired, senão "ativo"), inicio (Start Price), comprarJa (Buy Now), mercado (Market Price, ou 0), '+FT+'. Números sem separadores. Responde apenas com um array JSON, sem mais texto.';
 function guardaFoto(k,x){cat[k]=cat[k]||{};if(x.foto&&!cat[k].foto)cat[k].foto=x.foto}
 
@@ -449,10 +458,10 @@ $('fotos').onchange=async()=>{
   $('pv').innerHTML='';
   try{
     const raw=await lerPrints(fs,P_VENDAS,st);
-    pend=raw.map(x=>({nome:String(x.nome||'').trim(),rating:+x.rating||0,pos:String(x.posicao||''),foto:x.foto,venda:+x.vendido||0,lucro:+x.lucro,sold:x.estado==='vendido'&&+x.vendido>0&&x.lucro!==null&&x.lucro!==undefined&&!isNaN(+x.lucro)})).filter(x=>x.nome);
+    pend=raw.map(x=>({nome:String(x.nome||'').trim(),rating:+x.rating||0,pos:String(x.posicao||''),foto:x.foto,venda:+x.vendido||0,lucro:+x.lucro,sold:+x.vendido>0&&x.lucro!==null&&x.lucro!==undefined&&!isNaN(+x.lucro)})).filter(x=>x.nome);
     pend.forEach(x=>{x.dup=x.sold&&trades.some(t=>t.nome===x.nome&&t.venda===x.venda&&lucro(t)===x.lucro)});
     const vs=pend.filter(x=>x.sold);
-    st.textContent=vs.length+(vs.length===1?' venda encontrada':' vendas encontradas')+'. Confirma e adiciona.'+(falhas?' ('+falhas+(falhas===1?' print falhou':' prints falharam')+'. Importa-o(s) outra vez.)':'');
+    st.textContent=(vs.length?vs.length+(vs.length===1?' venda encontrada':' vendas encontradas')+'. Confirma e adiciona.':'Li '+pend.length+' cartões mas nenhum com Sold For e Net Profit. Confirma que o print é da secção Sold Items.')+(falhas?' ('+falhasInfo.join('; ')+'. Importa esse(s) outra vez.)':'');
     $('pv').innerHTML=vs.length?vs.map(x=>`<label style="display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);color:var(--ink);font-size:14px"><input type="checkbox" style="width:auto;margin:0" data-i="${pend.indexOf(x)}" ${x.dup?'':'checked'}><span>${esc(lab(x))} · ${num(x.venda)} · <b class="${cls(x.lucro)}">${fmt(x.lucro)}</b>${x.dup?' · já registada':''}</span></label>`).join('')+'<button class="go" id="add" style="margin-top:12px">Adicionar selecionadas</button>':'';
     if(vs.length)$('add').onclick=()=>{
       const ok=new Set([...$('pv').querySelectorAll('input:checked')].map(i=>+i.dataset.i));
