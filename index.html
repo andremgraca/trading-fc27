@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Livro de Trading FC27</title>
+<meta name="theme-color" content="#081520">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Trading FC27">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<style>
+:root{--bg:#081520;--card:#10283a;--card2:#163349;--line:#21435c;--ink:#eef7f3;--mute:#86a2b3;--mint:#3ae6a2;--loss:#ff7b72;--gold:#f2c14e;--on:#04281c;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#eaf3f0;--card:#fff;--card2:#f1f8f5;--line:#d2e3dd;--ink:#0b2230;--mute:#58737f;--mint:#0c9a66;--loss:#c93b31;--gold:#a67c0a;--on:#fff}}
+:root[data-theme="light"]{--bg:#eaf3f0;--card:#fff;--card2:#f1f8f5;--line:#d2e3dd;--ink:#0b2230;--mute:#58737f;--mint:#0c9a66;--loss:#c93b31;--gold:#a67c0a;--on:#fff}
+*{box-sizing:border-box}
+html{color-scheme:light dark;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.4}
+main{max-width:640px;margin:0 auto;padding:16px 14px 110px}
+h1{font-size:13px;letter-spacing:.04em;color:var(--mute);margin:0 0 12px;font-weight:600}
+h2{font-size:17px;margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px}
+.hero{background:linear-gradient(150deg,var(--card2),var(--card));border-color:color-mix(in srgb,var(--mint) 45%,var(--line))}
+.hero small,.mini small,.stat small{color:var(--mute);font-size:13px}
+.big{display:block;font-size:56px;font-weight:800;letter-spacing:-.03em;line-height:1.05;margin:6px 0 4px}
+.between{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pos{color:var(--mint)}.neg{color:var(--loss)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.mini{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;text-align:left;font:inherit;color:inherit}
+.mini b{display:block;font-size:22px;margin-top:2px;letter-spacing:-.02em}
+button.mini{cursor:pointer}
+.go{display:block;width:100%;text-align:center;font:inherit;font-weight:700;font-size:16px;border:0;border-radius:14px;padding:15px;background:var(--mint);color:var(--on);cursor:pointer}
+.ghost,.chip{font:inherit;font-size:13px;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:7px 13px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.vh{position:absolute;opacity:0;width:1px;height:1px;overflow:hidden}
+.note{color:var(--mute);font-size:13px;margin:8px 0 0}
+.bars{display:flex;align-items:flex-end;gap:6px;height:150px}
+.bar{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;background:none;border:0;color:inherit;font:inherit;font-size:11px;font-weight:700;cursor:pointer;padding:0}
+.bar i{display:block;width:100%;max-width:38px;border-radius:8px 8px 3px 3px;background:var(--mint);min-height:4px}
+.bar.z i{opacity:.25}
+.bar span.d{color:var(--mute);font-weight:600}
+.row{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.row .tx{flex:1;min-width:0}
+.row .tx b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .tx small{color:var(--mute);font-size:12px}
+.av{width:38px;height:48px;border-radius:8px;object-fit:cover;flex:none;background:var(--card2)}
+.av.ph{display:grid;place-items:center;font-weight:800;color:var(--mute);font-size:16px}
+.avb{background:none;border:0;padding:0;cursor:pointer}
+.x{font:inherit;font-size:12px;color:var(--mute);background:none;border:1px solid var(--line);border-radius:999px;padding:5px 10px;cursor:pointer}
+.x.arm{color:var(--loss);border-color:var(--loss)}
+input,select{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:4px}
+label{font-size:13px;color:var(--mute);display:block}
+form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.full{grid-column:1/-1}
+details summary{cursor:pointer;font-weight:600;list-style:none}
+details summary::after{content:" +";color:var(--mute)}
+details[open] summary::after{content:" −"}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .w{text-align:center;color:var(--mute);font-size:12px;padding:4px 0}
+.cd{aspect-ratio:1/1.05;border-radius:10px;border:1px solid var(--line);background:transparent;color:inherit;font:inherit;padding:3px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;cursor:pointer}
+.cd i{font-style:normal;font-size:11px;color:var(--mute)}
+.cd b{font-size:11px;letter-spacing:-.02em}
+.cd:disabled{border-color:transparent;cursor:default}
+.cd.has{background:var(--card2)}
+.cd.hoje{border-color:var(--gold)}
+.sheet-h{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.warn{border-color:var(--gold)}
+.nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:2px;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);border-top:1px solid var(--line);z-index:5}
+.nb{flex:1;min-width:0;max-width:100px;display:flex;flex-direction:column;align-items:center;gap:3px;font:inherit;font-size:10px;color:var(--mute);background:none;border:0;padding:6px 0;cursor:pointer}
+.nb svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nb[aria-current="true"]{color:var(--mint);font-weight:700}
+button:focus-visible,input:focus-visible,summary:focus-visible,label:focus-within{outline:2px solid var(--gold);outline-offset:2px}
+.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.opts .chip{border-radius:14px;padding:10px 4px;text-align:center;line-height:1.3}
+.rg{margin:10px 0 0;padding:0;list-style:none;font-size:14px;color:var(--mute)}
+.rg li{padding:5px 0;border-top:1px solid var(--line)}
+.rg b{color:var(--ink)}
+.fab{position:fixed;right:16px;bottom:calc(88px + env(safe-area-inset-bottom,0px));width:56px;height:56px;border-radius:50%;border:0;background:var(--mint);color:var(--on);display:grid;place-items:center;box-shadow:0 6px 20px rgba(0,0,0,.35);z-index:6;cursor:pointer}
+.fab svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10;display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:640px;background:var(--card);border-radius:24px 24px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+<h1>LIVRO DE TRADING · FC27</h1>
+
+<section id="ov">
+<div class="card hero">
+<div class="between"><small>Lucro de hoje até agora</small><button class="chip" id="novo">Novo dia</button></div>
+<b class="big" id="hl">0</b>
+<div class="between"><small id="hn"></small><button class="chip" id="vdia">Ver o dia</button></div>
+</div>
+
+<div class="card">
+<label class="go" for="fotos">Importar vendas (print)</label>
+<input class="vh" type="file" id="fotos" accept="image/*" multiple>
+<p class="note" id="st" aria-live="polite">Escolhe os prints das tuas vendas. A app lê tudo e mostra para confirmares.</p>
+<div id="pv"></div>
+</div>
+
+<div class="grid2">
+<button class="mini" id="m1"><small>Ontem</small><b id="v1"></b></button>
+<div class="mini"><small>Últimos 7 dias</small><b id="v2"></b></div>
+<div class="mini"><small>Este mês</small><b id="v3"></b></div>
+<div class="mini"><small>Total</small><b id="v4"></b></div>
+</div>
+
+<div class="card"><h2>Últimos 7 dias</h2><div class="bars" id="bars"></div><p class="note">Toca num dia para ver as vendas. O dia muda às 05:00.</p></div>
+
+<div class="card"><div class="between"><h2>Melhores jogadores</h2><button class="chip" data-go="jo">Ver todos</button></div><div id="top"></div></div>
+
+<div class="card"><details><summary>Registar venda à mão</summary>
+<form id="f" style="margin-top:12px">
+<label class="full">Jogador<input id="nome" list="nomes" required autocomplete="off" placeholder="Ex.: Rice · 88 CDM"></label>
+<datalist id="nomes"></datalist>
+<label>Vendido por<input id="venda" type="number" inputmode="numeric" min="0" required></label>
+<label>Lucro (Net Profit)<input id="lucro" type="number" inputmode="numeric" required></label>
+<p class="note full" id="prev" style="margin:0;min-height:18px"></p>
+<button class="go full" type="submit">Guardar venda</button>
+</form></details></div>
+</section>
+
+<section id="ca" hidden>
+<div class="card">
+<div class="between" style="margin-bottom:10px"><button class="chip" id="cp" aria-label="Mês anterior">‹</button><h2 id="ct" style="margin:0"></h2><button class="chip" id="cn" aria-label="Mês seguinte">›</button></div>
+<p class="note" style="margin:0 0 10px;text-align:center" id="cm"></p>
+<div class="cal" id="cg"></div>
+</div>
+</section>
+
+<section id="li" hidden>
+<div class="grid2">
+<div class="mini"><small>Em venda</small><b id="l1"></b></div>
+<div class="mini"><small>Expirados</small><b id="l2" class="neg"></b></div>
+</div>
+<div class="card">
+<label class="go" for="fotosL">Atualizar lista (prints)</label>
+<input class="vh" type="file" id="fotosL" accept="image/*" multiple>
+<p class="note" id="stL" aria-live="polite">Cada atualização substitui a lista anterior, por isso nada se duplica. Cartas idênticas com os mesmos preços contam como uma.</p>
+</div>
+<div class="card"><div class="between"><h2 id="lt">Lista atual</h2><small class="note" style="margin:0" id="l3"></small></div><div id="ll"></div></div>
+</section>
+
+<section id="jo" hidden>
+<div id="dupBox"></div>
+<div class="card">
+<div class="between"><h2 id="jt">Jogadores</h2></div>
+<div class="between" style="justify-content:flex-start;flex-wrap:wrap;margin-bottom:10px">
+<button class="chip" data-o="vendas" aria-pressed="true">Mais vendas</button>
+<button class="chip" data-o="lucro" aria-pressed="false">Mais lucro</button>
+<button class="chip" data-o="az" aria-pressed="false">A–Z</button>
+</div>
+<input id="busca" placeholder="Procurar jogador" aria-label="Procurar jogador">
+<div id="jl" style="margin-top:6px"></div>
+<p class="note">Toca na foto de um jogador para a mudar.</p>
+<input class="vh" type="file" id="pf" accept="image/*">
+</div>
+<div class="card"><details><summary>Adicionar jogador</summary>
+<form id="fj" style="margin-top:12px">
+<label class="full">Nome<input id="pn" required autocomplete="off"></label>
+<label>Rating<input id="pr" type="number" inputmode="numeric" min="40" max="99"></label>
+<label>Posição<input id="pp" placeholder="CDM" autocapitalize="characters"></label>
+<button class="go full" type="submit">Adicionar</button>
+</form></details></div>
+</section>
+
+<section id="da" hidden>
+<div class="card">
+<h2>Leitura de prints (grátis)</h2>
+<p class="note" style="margin:0 0 10px">Cria uma chave gratuita em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" style="color:var(--mint)">aistudio.google.com/apikey</a>, cola-a aqui e guarda. Fica só neste telemóvel.</p>
+<label>Chave da API Gemini<input id="gkey" type="password" autocomplete="off" placeholder="Cola a chave aqui"></label>
+<label style="margin-top:10px">Modelo<input id="gmodel"></label>
+<div class="between" style="margin-top:12px;justify-content:flex-start"><button class="go" id="gsave" style="width:auto;padding:12px 18px">Guardar</button><button class="ghost" id="gdel">Apagar chave</button></div>
+<p class="note" id="gst"></p>
+</div>
+<div class="card">
+<h2>Cópia de segurança</h2>
+<button class="go" id="bak">Guardar cópia de segurança</button>
+<label style="margin-top:14px">Restaurar cópia<input type="file" id="rest" accept=".json,application/json"></label>
+<div class="between" style="margin-top:14px;justify-content:flex-start"><button class="ghost" id="csv">Exportar CSV</button><button class="ghost" id="clr">Apagar tudo</button></div>
+<p class="note" id="stD" aria-live="polite"></p>
+<p class="note">Os dados ficam guardados neste browser. Lucro = venda × 0,95 − compra (taxa de 5% da EA).</p>
+</div>
+</section>
+
+<section id="dd" hidden>
+<div class="sheet-h"><button class="chip" id="back">‹ Voltar</button><h2 id="dt" style="margin:0"></h2></div>
+<div class="card hero"><small>Lucro do dia</small><b class="big" id="d1"></b></div>
+<div class="grid2">
+<div class="mini"><small>Vendas</small><b id="d2"></b></div>
+<div class="mini"><small>Média por venda</small><b id="d3"></b></div>
+</div>
+<div class="card"><div id="dl"></div></div>
+</section>
+</main>
+
+<button class="fab" id="fab" aria-label="Calcular preço de venda"><svg viewBox="0 0 24 24"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></button>
+<div class="pop" id="pop" hidden role="dialog" aria-modal="true" aria-labelledby="pt">
+<div class="sheet">
+<div class="between" style="margin-bottom:12px"><h2 id="pt" style="margin:0">Quanto vender</h2><button class="chip" id="pcl">Fechar</button></div>
+<label>Comprei por<input id="pb" type="number" inputmode="numeric" min="0" placeholder="Ex.: 13750"></label>
+<div id="pres" hidden style="margin-top:14px">
+<small style="color:var(--mute)">Lista por</small><b class="big pos" id="pbig"></b>
+<p class="note" id="pexp" style="margin:0 0 12px"></p>
+<div class="opts" id="popts"></div>
+<p class="note" id="ptip" hidden>Dica: acima de 100k, listar em 102k, 202k, 302k… pode parecer um snipe.</p>
+</div>
+</div>
+</div>
+<nav class="nav" aria-label="Menu">
+<button class="nb" data-t="ov"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Resumo</button>
+<button class="nb" data-t="ca"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calendário</button>
+<button class="nb" data-t="li"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Lista</button>
+<button class="nb" data-t="jo"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6M17 4.5a3.5 3.5 0 0 1 0 7M22 20c0-2.8-1.8-4.8-4.5-5.6"/></svg>Jogadores</button>
+<button class="nb" data-t="da"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Dados</button>
+</nav>
+
+<script>
+const KEY='fc27-trades',CK='fc27-cat';
+const ld=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
+let trades=ld(KEY,[]),cat=ld(CK,{}),lista=ld('fc27-lista',{t:0,items:[]}),corte=0,pend=[],ord='vendas',cal=null,vista='ov',ant='ov',diaAb=null,rm=null,fotoPara=null,AG={},PD={},HOJE='';
+try{corte=+localStorage.getItem('fc27-corte')||0}catch(e){}
+Object.keys(cat).forEach(k=>{if(!cat[k]||typeof cat[k]!=='object')cat[k]={}});
+if(!lista.items)lista.items=[];
+const $=id=>document.getElementById(id);
+const fmt=n=>(n>0?'+':'')+Math.round(n).toLocaleString('pt-PT');
+const num=n=>Math.round(n).toLocaleString('pt-PT');
+const lucro=t=>Math.floor(t.venda*0.95)-t.compra;
+const cls=n=>n>=0?'pos':'neg';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const lab=t=>t.nome+(t.rating?' · '+t.rating+(t.pos?' '+t.pos:''):'');
+const parse=v=>{const m=v.trim().match(/^(.*?) · (\d+)(?: (\S+))?$/);return m?{nome:m[1],rating:+m[2],pos:m[3]||''}:{nome:v.trim(),rating:0,pos:''}};
+const norm=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+const SH=5*36e5,sd=d=>new Date(new Date(d).getTime()-SH),kr=d=>d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate(),dk=d=>kr(sd(d));
+const kd=k=>{const p=k.split('-').map(Number);return new Date(p[0],p[1],p[2])};
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(trades));localStorage.setItem(CK,JSON.stringify(cat));localStorage.setItem('fc27-lista',JSON.stringify(lista));localStorage.setItem('fc27-corte',corte)}catch(e){}};
+const av=k=>{const f=cat[k]&&cat[k].foto;return f?`<img class="av" src="${f}" alt="">`:`<span class="av ph">${esc(parse(k).nome.slice(0,1).toUpperCase())}</span>`};
+const vazio=t=>`<p class="note" style="margin:6px 0">${t}</p>`;
+
+function ir(id){
+  vista=id;['ov','ca','li','jo','da','dd'].forEach(v=>$(v).hidden=v!==id);
+  if(id!=='dd')ant=id;
+  document.querySelectorAll('.nb').forEach(b=>b.setAttribute('aria-current',b.dataset.t===ant));
+  window.scrollTo(0,0);
+}
+function refresh(){render();if(vista==='dd'&&diaAb)abreDia(diaAb,true)}
+function tap2(key,fn){
+  if(rm===key){rm=null;fn();return}
+  rm=key;refresh();
+  setTimeout(()=>{if(rm===key){rm=null;refresh()}},4000);
+}
+
+function render(){
+  const now=new Date(),snow=sd(now),hoje=dk(now),ontem=dk(new Date(now.getTime()-864e5));
+  HOJE=hoje;PD={};AG={};
+  trades.forEach(t=>{
+    const k=dk(t.data),l=lucro(t),o=PD[k]=PD[k]||{l:0,n:0};o.l+=l;o.n++;
+    const g=lab(t),p=AG[g]=AG[g]||{k:g,n:0,l:0,best:-Infinity,ult:t.data};
+    p.n++;p.l+=l;p.best=Math.max(p.best,l);if(t.data>p.ult)p.ult=t.data;
+  });
+  const dia=k=>PD[k]||{l:0,n:0};
+  const th=trades.filter(t=>dk(t.data)===hoje&&new Date(t.data).getTime()>=corte);
+  const hl=th.reduce((s,t)=>s+lucro(t),0);
+  $('hl').textContent=fmt(hl);$('hl').className='big '+cls(hl);
+  $('hn').textContent=th.length+(th.length===1?' venda':' vendas')+' · '+((corte&&dk(corte)===hoje)?'novo dia às '+new Date(corte).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}):'desde as 05:00');
+  const dias=[];for(let i=6;i>=0;i--){const d=new Date(snow.getFullYear(),snow.getMonth(),snow.getDate()-i,12);dias.push({k:kr(d),l:d.toLocaleDateString('pt-PT',{weekday:'short'}).replace('.',''),v:dia(kr(d)).l,n:dia(kr(d)).n})}
+  const set=(id,v)=>{const e=$(id);e.textContent=fmt(v);e.className=cls(v)};
+  set('v1',dia(ontem).l);set('v2',dias.reduce((s,d)=>s+d.v,0));
+  set('v3',Object.keys(PD).filter(k=>{const p=k.split('-');return +p[0]===snow.getFullYear()&&+p[1]===snow.getMonth()}).reduce((s,k)=>s+PD[k].l,0));
+  set('v4',trades.reduce((s,t)=>s+lucro(t),0));
+  const mx=Math.max(1,...dias.map(d=>Math.abs(d.v)));
+  $('bars').innerHTML=dias.map(d=>`<button class="bar ${d.n?'':'z'}" data-k="${d.k}" aria-label="${d.l}: ${fmt(d.v)}"><span class="${cls(d.v)}">${d.n?fmt(d.v):''}</span><i style="height:${d.n?Math.max(6,Math.abs(d.v)/mx*100):4}px"></i><span class="d">${d.l}</span></button>`).join('');
+  const arr=Object.values(AG);
+  $('top').innerHTML=arr.length?[...arr].sort((a,b)=>b.l-a.l).slice(0,5).map(p=>`<div class="row">${av(p.k)}<div class="tx"><b>${esc(p.k)}</b><small>${p.n} ${p.n===1?'venda':'vendas'}</small></div><b class="${cls(p.l)}">${fmt(p.l)}</b></div>`).join(''):vazio('Importa o primeiro print para começar.');
+  renderCal(hoje);renderLista();renderJog(arr);renderPreco();
+}
+
+function renderCal(hoje){
+  if(!cal){const s=sd(new Date());cal={y:s.getFullYear(),m:s.getMonth()}}
+  const off=(new Date(cal.y,cal.m,1).getDay()+6)%7,nd=new Date(cal.y,cal.m+1,0).getDate();
+  let h='SEGTQQSSD'.length&&['S','T','Q','Q','S','S','D'].map(w=>`<span class="w">${w}</span>`).join(''),tot=0;
+  for(let i=0;i<off;i++)h+='<span></span>';
+  for(let d=1;d<=nd;d++){
+    const k=cal.y+'-'+cal.m+'-'+d,o=PD[k];if(o)tot+=o.l;
+    h+=`<button class="cd ${o?'has':''} ${k===hoje?'hoje':''}" data-k="${k}" ${o?'':'disabled'} aria-label="Dia ${d}"><i>${d}</i>${o?`<b class="${cls(o.l)}">${num(o.l)}</b>`:''}</button>`;
+  }
+  $('cg').innerHTML=h;
+  $('ct').textContent=cap(new Date(cal.y,cal.m,1).toLocaleDateString('pt-PT',{month:'long',year:'numeric'}));
+  $('cm').innerHTML='Lucro do mês: <b class="'+cls(tot)+'">'+fmt(tot)+'</b>';
+}
+
+function renderLista(){
+  const it=lista.items,at=it.filter(x=>x.estado!=='expirado');
+  $('l1').textContent=at.length;$('l2').textContent=it.length-at.length;
+  $('lt').textContent='Lista atual ('+it.length+')';
+  $('l3').textContent=lista.t?'Atualizada '+new Date(lista.t).toLocaleString('pt-PT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
+  $('ll').innerHTML=it.length?[...it].sort((a,b)=>(b.estado==='expirado')-(a.estado==='expirado')||b.comprarJa-a.comprarJa).map(x=>{const k=lab(x);return `<div class="row">${av(k)}<div class="tx"><b>${esc(k)}</b><small>Buy Now ${num(x.comprarJa)}${x.mercado?' · mercado '+num(x.mercado):''}</small></div><b class="${x.estado==='expirado'?'neg':'pos'}">${x.estado==='expirado'?'Expirado':'Em venda'}</b></div>`}).join(''):vazio('Carrega os prints da tua lista de transferências para a veres aqui.');
+}
+
+function dups(keys){
+  const a=keys.map(k=>({k,...parse(k)})),out=[];
+  for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++){
+    const x=a[i],y=a[j],n1=norm(x.nome),n2=norm(y.nome);
+    const same=n1===n2,sub=n1.length>3&&n2.length>3&&(n1.includes(n2)||n2.includes(n1));
+    const rr=x.rating===y.rating,unk=!x.rating||!y.rating;
+    if((same&&(rr||unk))||(sub&&rr&&x.rating))out.push([x.k,y.k]);
+  }
+  return out;
+}
+function renderJog(arr){
+  const keys=[...new Set([...Object.keys(cat),...arr.map(p=>p.k)])];
+  $('jt').textContent=keys.length+' jogadores';
+  const ds=dups(keys);
+  $('dupBox').innerHTML=ds.length?`<div class="card warn"><h2>Possíveis repetidos (${ds.length})</h2>${ds.map((p,i)=>`<div class="row"><div class="tx"><b>${esc(p[0])}</b><small>parece o mesmo que ${esc(p[1])}</small></div><button class="x" data-j="${i}">Juntar</button></div>`).join('')}</div>`:'';
+  window._ds=ds;
+  const q=norm($('busca').value),m=Object.fromEntries(arr.map(p=>[p.k,p]));
+  const L=keys.filter(k=>norm(k).includes(q)).map(k=>m[k]||{k,n:0,l:0,ult:''});
+  L.sort((a,b)=>ord==='az'?a.k.localeCompare(b.k):ord==='lucro'?b.l-a.l||b.n-a.n:b.n-a.n||b.l-a.l||a.k.localeCompare(b.k));
+  $('jl').innerHTML=L.length?L.map(p=>{
+    const armado=rm==='p'+p.k;
+    return `<div class="row"><button class="avb" data-pf="${esc(p.k)}" aria-label="Mudar foto">${av(p.k)}</button><div class="tx"><b>${esc(p.k)}</b><small>${p.n?p.n+(p.n===1?' venda':' vendas')+' · '+fmt(p.l):'Sem vendas'}</small></div><button class="x ${armado?'arm':''}" data-rm="${esc(p.k)}">${armado?(p.n?'Apagar + '+p.n+' vendas?':'Apagar?'):'Remover'}</button></div>`;
+  }).join(''):vazio('Nenhum jogador encontrado.');
+  $('nomes').innerHTML=keys.map(k=>`<option value="${esc(k)}">`).join('');
+  document.querySelectorAll('[data-o]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.o===ord));
+}
+function junta(a,b){
+  const na=(AG[a]||{n:0}).n,nb=(AG[b]||{n:0}).n;
+  let keep=a,out=b;
+  if(nb>na||(nb===na&&parse(b).rating&&!parse(a).rating)){keep=b;out=a}
+  const pk=parse(keep);
+  const fix=t=>{if(lab(t)===out){t.nome=pk.nome;t.rating=pk.rating;t.pos=pk.pos}};
+  trades.forEach(fix);lista.items.forEach(fix);
+  cat[keep]=Object.assign({},cat[out]||{},cat[keep]||{});delete cat[out];
+  save();render();
+}
+function apaga(k){
+  trades=trades.filter(t=>lab(t)!==k);lista.items=lista.items.filter(x=>lab(x)!==k);delete cat[k];save();render();
+}
+
+function abreDia(k,keep){
+  diaAb=k;
+  const ts=trades.filter(t=>dk(t.data)===k).sort((a,b)=>a.data<b.data?1:-1),tot=ts.reduce((s,t)=>s+lucro(t),0);
+  $('dt').textContent=cap(kd(k).toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long'}));
+  $('d1').textContent=fmt(tot);$('d1').className='big '+cls(tot);
+  $('d2').textContent=ts.length;$('d3').textContent=ts.length?fmt(tot/ts.length):'0';
+  $('dl').innerHTML=ts.length?ts.map(t=>{const g=lab(t),armado=rm==='v'+t.id;return `<div class="row">${av(g)}<div class="tx"><b>${esc(g)}</b><small>Vendido por ${num(t.venda)} · ${new Date(t.data).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}</small></div><b class="${cls(lucro(t))}">${fmt(lucro(t))}</b><button class="x ${armado?'arm':''}" data-id="${t.id}" aria-label="Apagar venda">${armado?'Apagar?':'×'}</button></div>`}).join(''):vazio('Sem vendas neste dia.');
+  if(!keep)ir('dd');
+}
+
+/* leitura de prints */
+async function reduz(f){
+  const bmp=await createImageBitmap(f),s=Math.min(1,1600/Math.max(bmp.width,bmp.height));
+  const c=document.createElement('canvas');c.width=Math.round(bmp.width*s);c.height=Math.round(bmp.height*s);
+  c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);
+  return {canvas:c,blob:await new Promise(r=>c.toBlob(r,'image/jpeg',.85))};
+}
+function thumb(src,sx,sy,sw,sh){
+  const w=80,h=Math.max(40,Math.min(120,Math.round(w*sh/sw))),c=document.createElement('canvas');
+  c.width=w;c.height=h;c.getContext('2d').drawImage(src,sx,sy,sw,sh,0,0,w,h);return c.toDataURL('image/jpeg',.72);
+}
+function lerJson(t){const m=t.match(/\[[\s\S]*\]/);if(!m)throw {code:'sem_json'};return JSON.parse(m[0])}
+function b64(c){return c.toDataURL('image/jpeg',.85).split(',')[1]}
+const gk=()=>{try{return localStorage.getItem('fc27-gkey')||''}catch(e){return ''}};
+const gm=()=>{try{return localStorage.getItem('fc27-gmodel')||'gemini-3.8-flash'}catch(e){return 'gemini-3.8-flash'}};
+async function gemini(prompt,canvas){
+  const k=gk();if(!k)throw {code:'sem_chave'};
+  let r;
+  try{
+    r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(gm())+':generateContent',{
+      method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':k},
+      body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:'image/jpeg',data:b64(canvas)}}]}],generationConfig:{temperature:0,responseMimeType:'application/json'}})
+    });
+  }catch(e){throw {code:'rede'}}
+  if(!r.ok)throw {code:'http_'+r.status};
+  const j=await r.json();
+  const parts=(((j.candidates||[])[0]||{}).content||{}).parts||[];
+  return parts.filter(p=>p.text&&!p.thought).map(p=>p.text).join('');
+}
+const espera=ms=>new Promise(r=>setTimeout(r,ms));
+async function lerPrints(fs,prompt,st){
+  const out=[];
+  for(let i=0;i<fs.length;i++){
+    st.textContent='A ler o print '+(i+1)+' de '+fs.length+'…';
+    const cv=await reduz(fs[i]);
+    const txt=await gemini(prompt,cv.canvas);
+    lerJson(txt).forEach(x=>{
+      let f=null,foto='';
+      const bx=Array.isArray(x.caixa)?x.caixa.map(Number):null;
+      if(bx&&bx.length===4&&bx.every(v=>v>=0&&v<=1000)){f=[bx[1]/1000,bx[0]/1000,(bx[3]-bx[1])/1000,(bx[2]-bx[0])/1000]}
+      if(f&&f.every(v=>v>=0&&v<=1)&&f[2]>.04&&f[3]>.04){
+        const W=cv.canvas.width,H=cv.canvas.height;
+        try{foto=thumb(cv.canvas,f[0]*W,f[1]*H,Math.min(f[2],1-f[0])*W,Math.min(f[3],1-f[1])*H)}catch(e){}
+      }
+      out.push({...x,foto});
+    });
+    if(i<fs.length-1)await espera(2000);
+  }
+  return out;
+}
+const erro=e=>{const c=e&&e.code;
+  if(c==='sem_chave')return 'Falta a chave do Gemini. Vai a Dados, em Leitura de prints, e cola a chave.';
+  if(c==='rede')return 'Sem ligação, ou o pedido foi bloqueado. Tenta de novo.';
+  if(c==='http_429')return 'Atingiste o limite gratuito. Espera um minuto e tenta com menos prints.';
+  if(c==='http_404')return 'O modelo não existe (404). Muda o nome do modelo em Dados.';
+  if(/^http_(400|401|403)$/.test(c||''))return 'A chave ou o modelo não foram aceites ('+c.slice(5)+'). Confirma a chave e o modelo em Dados.';
+  return 'Não consegui ler os prints ('+(c||'erro')+'). Tenta com um print de cada vez.'};
+const FT='caixa ([ymin,xmin,ymax,xmax] normalizada de 0 a 1000 na imagem, a envolver só a carta do jogador que aparece à esquerda do cartão)';
+const P_VENDAS='Esta é uma captura do ecrã Transfer List do EA FC. Para cada cartão de jogador visível devolve um objeto com: nome, rating (número grande no cartão), posicao (ex.: CDM), estado ("vendido" se está em Sold Items com Net Profit, senão "ativo"), vendido (valor de Sold For, ou 0), lucro (valor de Net Profit com sinal, ou null), '+FT+'. Números sem separadores. Responde apenas com um array JSON, sem mais texto.';
+const P_LISTA='Esta é uma captura do ecrã Transfer List do EA FC. Considera só os cartões ainda por vender e ignora a secção Sold Items (cartões com Sold For e Net Profit). Para cada cartão devolve um objeto com: nome, rating (número grande no cartão), posicao (ex.: CDM), estado ("expirado" se o tempo é Expired, senão "ativo"), inicio (Start Price), comprarJa (Buy Now), mercado (Market Price, ou 0), '+FT+'. Números sem separadores. Responde apenas com um array JSON, sem mais texto.';
+function guardaFoto(k,x){cat[k]=cat[k]||{};if(x.foto&&!cat[k].foto)cat[k].foto=x.foto}
+
+$('fotos').onchange=async()=>{
+  const fs=[...$('fotos').files],st=$('st');if(!fs.length)return;
+  $('pv').innerHTML='';
+  try{
+    const raw=await lerPrints(fs,P_VENDAS,st);
+    pend=raw.map(x=>({nome:String(x.nome||'').trim(),rating:+x.rating||0,pos:String(x.posicao||''),foto:x.foto,venda:+x.vendido||0,lucro:+x.lucro,sold:x.estado==='vendido'&&+x.vendido>0&&x.lucro!==null&&x.lucro!==undefined&&!isNaN(+x.lucro)})).filter(x=>x.nome);
+    pend.forEach(x=>{x.dup=x.sold&&trades.some(t=>t.nome===x.nome&&t.venda===x.venda&&lucro(t)===x.lucro)});
+    const vs=pend.filter(x=>x.sold);
+    st.textContent=vs.length+(vs.length===1?' venda encontrada':' vendas encontradas')+'. Confirma e adiciona.';
+    $('pv').innerHTML=vs.length?vs.map(x=>`<label style="display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);color:var(--ink);font-size:14px"><input type="checkbox" style="width:auto;margin:0" data-i="${pend.indexOf(x)}" ${x.dup?'':'checked'}><span>${esc(lab(x))} · ${num(x.venda)} · <b class="${cls(x.lucro)}">${fmt(x.lucro)}</b>${x.dup?' · já registada':''}</span></label>`).join('')+'<button class="go" id="add" style="margin-top:12px">Adicionar selecionadas</button>':'';
+    if(vs.length)$('add').onclick=()=>{
+      const ok=new Set([...$('pv').querySelectorAll('input:checked')].map(i=>+i.dataset.i));
+      pend.forEach((x,i)=>{
+        const k=lab(x);guardaFoto(k,x);
+        if(ok.has(i)){
+          trades.push({id:Date.now()+Math.random(),nome:x.nome,rating:x.rating,pos:x.pos,compra:Math.floor(x.venda*0.95)-x.lucro,venda:x.venda,data:new Date().toISOString()});
+          const j=lista.items.findIndex(y=>lab(y)===k&&(y.comprarJa===x.venda||y.inicio===x.venda));if(j>-1)lista.items.splice(j,1);
+        }
+      });
+      save();render();$('pv').innerHTML='';st.textContent='Adicionado.';
+    };
+  }catch(e){st.textContent=erro(e)}
+  $('fotos').value='';
+};
+$('fotosL').onchange=async()=>{
+  const fs=[...$('fotosL').files],st=$('stL');if(!fs.length)return;
+  try{
+    const raw=await lerPrints(fs,P_LISTA,st),items=[],vistos=new Set();
+    raw.forEach(x=>{
+      const o={nome:String(x.nome||'').trim(),rating:+x.rating||0,pos:String(x.posicao||''),estado:x.estado==='expirado'?'expirado':'ativo',inicio:+x.inicio||0,comprarJa:+x.comprarJa||0,mercado:+x.mercado||0,foto:x.foto};
+      const k=[o.nome,o.rating,o.pos,o.inicio,o.comprarJa].join('|');
+      if(!o.nome||!o.comprarJa||vistos.has(k))return;
+      vistos.add(k);items.push(o);
+    });
+    if(!items.length){st.textContent='Não encontrei jogadores nesses prints. A lista anterior ficou igual.';return}
+    items.forEach(o=>{guardaFoto(lab(o),o);delete o.foto});
+    lista={t:Date.now(),items};save();render();st.textContent=items.length+' jogadores na lista.';
+  }catch(e){st.textContent=erro(e)+' A lista anterior ficou igual.'}
+  $('fotosL').value='';
+};
+
+/* eventos */
+document.querySelectorAll('.nb').forEach(b=>b.onclick=()=>ir(b.dataset.t));
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button');if(!t)return;
+  if(t.dataset.k&&PD[t.dataset.k])abreDia(t.dataset.k);
+  else if(t.dataset.go)ir(t.dataset.go);
+  else if(t.dataset.o){ord=t.dataset.o;render()}
+  else if(t.dataset.j!==undefined){const p=window._ds[+t.dataset.j];if(p)junta(p[0],p[1])}
+  else if(t.dataset.rm){const k=t.dataset.rm;tap2('p'+k,()=>apaga(k))}
+  else if(t.dataset.id){const id=t.dataset.id;tap2('v'+id,()=>{trades=trades.filter(x=>String(x.id)!==id);save();refresh()})}
+  else if(t.dataset.pf){fotoPara=t.dataset.pf;$('pf').click()}
+  else if(t.dataset.usa){$('pb').value=t.dataset.usa;renderPreco()}
+  else if(t.dataset.sel){pSel=+t.dataset.sel;renderPreco()}
+});
+$('pf').onchange=async e=>{
+  const f=e.target.files[0];if(!f||!fotoPara)return;
+  try{
+    const b=await createImageBitmap(f),r=.8;let sx=0,sy=0,sw=b.width,sh=b.height;
+    if(sw/sh>r){const nw=sh*r;sx=(sw-nw)/2;sw=nw}else{const nh=sw/r;sy=(sh-nh)/2;sh=nh}
+    cat[fotoPara]=cat[fotoPara]||{};cat[fotoPara].foto=thumb(b,sx,sy,sw,sh);save();render();
+  }catch(err){}
+  e.target.value='';
+};
+$('busca').oninput=render;
+$('vdia').onclick=()=>abreDia(HOJE);
+$('m1').onclick=()=>abreDia(dk(new Date(Date.now()-864e5)));
+$('back').onclick=()=>ir(ant);
+$('cp').onclick=()=>{cal.m--;if(cal.m<0){cal.m=11;cal.y--}render()};
+$('cn').onclick=()=>{cal.m++;if(cal.m>11){cal.m=0;cal.y++}render()};
+function prev(){const l=$('lucro').value,v=+$('venda').value;$('prev').textContent=(l!==''&&v)?'Compra estimada: '+num(Math.floor(v*0.95)-(+l))+' moedas':''}
+$('lucro').oninput=prev;$('venda').oninput=prev;
+$('f').onsubmit=e=>{e.preventDefault();const p=parse($('nome').value);trades.push({id:Date.now()+Math.random(),...p,compra:Math.floor(+$('venda').value*0.95)-(+$('lucro').value),venda:+$('venda').value,data:new Date().toISOString()});const k=lab(p);cat[k]=cat[k]||{};save();e.target.reset();prev();render()};
+$('fj').onsubmit=e=>{e.preventDefault();const p={nome:$('pn').value.trim(),rating:+$('pr').value||0,pos:$('pp').value.trim().toUpperCase()},k=lab(p);if(p.nome){cat[k]=cat[k]||{};save();e.target.reset();render()}};
+function dupla(id,fn){const b=$(id),t0=b.textContent;let a=0,tm;b.onclick=()=>{if(a){clearTimeout(tm);a=0;b.textContent=t0;fn();return}a=1;b.textContent='Toca de novo';tm=setTimeout(()=>{a=0;b.textContent=t0},4000)}}
+dupla('novo',()=>{corte=Date.now();save();render()});
+dupla('clr',()=>{trades=[];cat={};lista={t:0,items:[]};corte=0;save();render()});
+
+/* preços */
+const stepP=p=>p<1000?50:p<10000?100:p<50000?250:p<100000?500:1000;
+function regra(B){
+  if(B<=2000)return{add:B*.5,t:'+50%'};
+  if(B<=5000)return{add:B*.4,t:'+40%'};
+  if(B<=15000)return{add:B*.3,t:'+30%'};
+  if(B<=19000)return{add:4000,t:'+4k'};
+  if(B<=50000)return{add:5000,t:'+5k'};
+  const a=Math.ceil(B/10000)*1000;return{add:a,t:'+'+(a/1000)+'k'};
+}
+function sugere(B){
+  const r=regra(B),S=(B+r.add)/0.95,unit=S<1000?100:S<5000?500:1000;
+  let down=0,up=Infinity;
+  const k0=Math.max(1,Math.floor(S/unit)-1);
+  for(let k=k0;k<=k0+4;k++){const v=k*unit-stepP(k*unit-1);if(v<=S&&v>down)down=v;if(v>=S&&v<up)up=v}
+  if(!down)down=up;if(up===Infinity)up=down;
+  const eq=(S-down<=up-S)?down:up;
+  return{r,S,opts:[{n:'Competitivo',p:down},{n:'Equilibrado',p:eq},{n:'Agressivo',p:up}]};
+}
+let pSel=1;
+function renderPreco(){
+  const B=+$('pb').value;
+  if(!(B>0)){$('pres').hidden=true;return}
+  const s=sugere(B),o=s.opts[pSel],net=Math.floor(o.p*0.95)-B;
+  $('pres').hidden=false;
+  $('pbig').textContent=num(o.p);
+  $('pexp').textContent='Lucro líquido '+fmt(net)+' ('+(net/B*100).toFixed(1).replace('.',',')+'%) depois da taxa de 5%';
+  $('popts').innerHTML=s.opts.map((x,i)=>`<button class="chip" data-sel="${i}" aria-pressed="${i===pSel}">${x.n}<br><b>${num(x.p)}</b></button>`).join('');
+  $('ptip').hidden=o.p<100000;
+}
+$('pb').oninput=renderPreco;
+$('fab').onclick=()=>{$('pop').hidden=false;$('pb').focus()};
+$('pcl').onclick=()=>{$('pop').hidden=true};
+$('pop').onclick=e=>{if(e.target.id==='pop')$('pop').hidden=true};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('pop').hidden=true});
+
+/* ficheiros */
+async function guarda(filename,data){
+  const st=$('stD');
+  try{
+    const file=new File([data],filename,{type:filename.endsWith('.json')?'application/json':'text/csv'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});st.textContent='Escolhe Guardar em Ficheiros.';return}
+    const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=filename;document.body.appendChild(a);a.click();a.remove();st.textContent='Guardado.';
+  }catch(e){st.textContent=(e&&e.name==='AbortError')?'Cancelado.':'Não consegui guardar o ficheiro.'}
+}
+$('bak').onclick=()=>guarda('trading-fc27-copia.json',JSON.stringify({v:1,guardado:new Date().toISOString(),trades,cat,lista,corte}));
+$('csv').onclick=()=>guarda('trading-fc27.csv',['jogador,rating,posicao,compra,venda,lucro,data',...trades.map(t=>['"'+t.nome+'"',t.rating||'',t.pos||'',t.compra,t.venda,lucro(t),t.data.slice(0,10)].join(','))].join('\r\n'));
+$('rest').onchange=async e=>{
+  const f=e.target.files[0],st=$('stD');if(!f)return;
+  try{
+    const d=JSON.parse(await f.text());
+    if(!d||d.v!==1||!Array.isArray(d.trades))throw 0;
+    const ids=new Set(trades.map(t=>String(t.id))),novas=d.trades.filter(t=>t&&t.nome&&!ids.has(String(t.id)));
+    trades=trades.concat(novas);cat=Object.assign({},d.cat||{},cat);
+    Object.keys(cat).forEach(k=>{if(!cat[k]||typeof cat[k]!=='object')cat[k]={}});
+    if(d.lista&&d.lista.items&&d.lista.t>(lista.t||0))lista=d.lista;
+    save();render();st.textContent=novas.length+' vendas restauradas. Nada do que já tinhas foi apagado.';
+  }catch(err){st.textContent='Este ficheiro não parece ser uma cópia desta app.'}
+  e.target.value='';
+};
+
+function showKey(){$('gst').textContent=gk()?'Chave guardada neste telemóvel.':'Ainda sem chave.';$('gmodel').value=gm()}
+$('gsave').onclick=()=>{const k=$('gkey').value.trim(),m=$('gmodel').value.trim()||'gemini-3.8-flash';try{if(k)localStorage.setItem('fc27-gkey',k);localStorage.setItem('fc27-gmodel',m)}catch(e){}$('gkey').value='';showKey()};
+$('gdel').onclick=()=>{try{localStorage.removeItem('fc27-gkey')}catch(e){}showKey()};
+showKey();
+setInterval(render,6e4);document.addEventListener('visibilitychange',render);
+render();ir('ov');
+</script>
+</body>
+</html>
