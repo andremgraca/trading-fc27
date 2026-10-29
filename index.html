@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Livro de Trading FC27</title>
-<meta name="theme-color" content="#0a0e22">
+<meta name="theme-color" content="#070b1c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Trading FC27">
@@ -119,6 +119,29 @@ h1{font-size:15px;letter-spacing:.14em;font-weight:800;background:linear-gradien
 .row .cm b{color:var(--ink)}
 .sug{border-radius:16px;box-shadow:0 10px 24px rgba(5,8,30,.35)}
 input,textarea{border-radius:14px;background:color-mix(in srgb,var(--bg) 70%,var(--card))}
+/* cores FIFA: dourado, azul-noite e verde neon */
+:root{--bg:#070b1c;--card:#0f1733;--card2:#17224d;--line:#2b3a6e;--ink:#f5f7ff;--mute:#8d9ac9;--mint:#19f08a;--loss:#ff5d7d;--gold:#f2cf6b;--on:#04210f}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#eef1f8;--card:#ffffff;--card2:#f8f2de;--line:#e4dcc0;--ink:#0b1228;--mute:#5b6485;--mint:#0a9d58;--loss:#c62f4d;--gold:#a97b10;--on:#ffffff}}
+:root[data-theme="light"]{--bg:#eef1f8;--card:#ffffff;--card2:#f8f2de;--line:#e4dcc0;--ink:#0b1228;--mute:#5b6485;--mint:#0a9d58;--loss:#c62f4d;--gold:#a97b10;--on:#ffffff}
+body{background:radial-gradient(900px 420px at 90% -8%,rgba(242,207,107,.20),transparent 60%),radial-gradient(800px 420px at -10% 10%,rgba(25,240,138,.12),transparent 55%),var(--bg);background-attachment:fixed}
+h1{background:linear-gradient(90deg,#f7e08a,#f2cf6b 45%,#19f08a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#fbe9a0 0%,#e8c15a 45%,#b98524 100%);color:#0b1228;box-shadow:0 14px 34px rgba(233,190,80,.34)}
+.hero::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.38) 50%,transparent 62%)}
+.hero small{color:rgba(11,18,40,.72)}
+.hero .big{color:#0b1228;text-shadow:none}
+.hero .big.neg{color:#8a1230}
+.hero .chip{border-color:rgba(11,18,40,.45);color:#0b1228;background:rgba(255,255,255,.35)}
+.go{background:linear-gradient(135deg,#19f08a,#0fbf6e);color:#04210f;box-shadow:0 8px 20px rgba(25,240,138,.28)}
+.bar i{background:linear-gradient(180deg,#19f08a,#0fbf6e)}
+.mini{border-top:2px solid color-mix(in srgb,var(--gold) 70%,transparent)}
+.cd.has{background:linear-gradient(160deg,color-mix(in srgb,var(--gold) 24%,var(--card2)),var(--card2))}
+.fab{background:linear-gradient(135deg,#f7e08a,#d6a93e);color:#0b1228;box-shadow:0 10px 26px rgba(233,190,80,.5)}
+.nb[aria-current="true"]{color:var(--gold);background:color-mix(in srgb,var(--gold) 14%,transparent)}
+.nb[aria-current="true"] svg{stroke:var(--gold)}
+.nav{border-top-color:color-mix(in srgb,var(--gold) 35%,var(--line))}
+.row .cm{display:flex;flex-direction:column;align-items:flex-end;line-height:1.15}
+.row .cm small{font-size:11px;color:var(--mute)}
+.row .cm b{font-size:16px;color:var(--gold)}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -318,7 +341,7 @@ function dups(keys){
 function renderHoje(){
   const ss=trades.filter(t=>dk(t.data)===HOJE&&new Date(t.data).getTime()>=sessao).sort((a,b)=>a.data<b.data?1:-1);
   $('hjT').textContent='Vendas desta sessão'+(ss.length?' ('+ss.length+')':'');
-  $('hj').innerHTML=ss.length?ss.map(t=>`<div class="row"><div class="tx"><b>${esc(t.nome)}</b></div><span class="cm">Compra <b>${num(t.compra)}</b></span><button class="x" data-cp="${esc(t.nome)}">Copiar nome</button></div>`).join(''):vazio('Nenhum jogador nesta sessão. Regista uma venda e aparece aqui.');
+  $('hj').innerHTML=ss.length?ss.map(t=>`<div class="row"><div class="tx"><b>${esc(t.nome)}</b></div><span class="cm"><small>Comprado por</small><b>${num(t.compra)}</b></span><button class="x" data-cp="${esc(t.nome)}">Copiar nome</button></div>`).join(''):vazio('Nenhum jogador nesta sessão. Regista uma venda e aparece aqui.');
   $('nsess').hidden=!ss.length;
 }
 function renderJog(arr){
