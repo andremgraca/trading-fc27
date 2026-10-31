@@ -142,6 +142,23 @@ h1{background:linear-gradient(90deg,#f7e08a,#f2cf6b 45%,#19f08a);-webkit-backgro
 .row .cm{display:flex;flex-direction:column;align-items:flex-end;line-height:1.15}
 .row .cm small{font-size:11px;color:var(--mute)}
 .row .cm b{font-size:16px;color:var(--gold)}
+/* tipos de carta */
+.tipos{display:flex;flex-wrap:wrap;gap:6px}
+.tp,.bd{color:#fff}
+.tp{font:inherit;font-size:12px;font-weight:700;border-radius:999px;padding:7px 12px;border:1.5px solid transparent;cursor:pointer;opacity:.62}
+.tp[aria-pressed="true"]{opacity:1;box-shadow:0 0 0 2px var(--ink)}
+.bd{display:inline-block;font-size:10px;font-weight:800;border-radius:999px;padding:2px 9px;margin:3px 0 0;letter-spacing:.02em;border:1px solid transparent}
+.t-ouro{background:linear-gradient(135deg,#f7e08a,#c9962c);color:#3a2a00}
+.t-inf{background:#0c0c11;border-color:#d9b44a;color:#f2cf6b}
+.t-fs{background:linear-gradient(135deg,#5b2fe0,#8f5bff)}
+.t-hero{background:linear-gradient(135deg,#7a1fa8,#c13fd0)}
+.t-outra{background:var(--card2);color:var(--ink);border-color:var(--line)}
+.t-infh,.t-fsh,.t-heroh{background-size:230% 100%;animation:holo 3.2s linear infinite}
+.t-infh{background-image:linear-gradient(110deg,#0c0c11 18%,#3b6cff 33%,#19f08a 44%,#ffd25a 55%,#ff5dc8 66%,#0c0c11 82%);border-color:#d9b44a}
+.t-fsh{background-image:linear-gradient(110deg,#5b2fe0 18%,#8f5bff 32%,#ffffff 45%,#19c6ff 56%,#8f5bff 68%,#5b2fe0 82%)}
+.t-heroh{background-image:linear-gradient(110deg,#7a1fa8 18%,#c13fd0 32%,#ffe1ff 45%,#ffd25a 56%,#c13fd0 68%,#7a1fa8 82%)}
+@keyframes holo{to{background-position:-230% 0}}
+@media (prefers-reduced-motion:reduce){.t-infh,.t-fsh,.t-heroh{animation:none}}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -163,6 +180,7 @@ h1{background:linear-gradient(90deg,#f7e08a,#f2cf6b 45%,#19f08a);-webkit-backgro
 <datalist id="nomes"></datalist>
 <label>Vendido por<input id="venda" type="number" inputmode="numeric" min="0" required></label>
 <label>Lucro (Net Profit)<input id="lucro" type="number" inputmode="numeric" required></label>
+<div class="full"><label style="margin-bottom:6px">Tipo de carta (sem escolher é normal)</label><div class="tipos" id="tipos"></div></div>
 <p class="note full" id="prev" style="margin:0;min-height:18px"></p>
 <button class="go full" type="submit">Guardar venda</button>
 </form></div>
@@ -232,6 +250,18 @@ h1{background:linear-gradient(90deg,#f7e08a,#f2cf6b 45%,#19f08a);-webkit-backgro
 </section>
 </main>
 
+<div class="pop" id="pe" hidden role="dialog" aria-modal="true" aria-labelledby="pet">
+<div class="sheet">
+<div class="between" style="margin-bottom:12px"><h2 id="pet" style="margin:0">Editar venda</h2><button class="chip" id="pecl">Fechar</button></div>
+<form id="fe">
+<label class="full">Jogador<input id="en2" required autocomplete="off"></label>
+<label>Vendido por<input id="ev" type="number" inputmode="numeric" min="0" required></label>
+<label>Lucro (Net Profit)<input id="el" type="number" inputmode="numeric" required></label>
+<div class="full"><label style="margin-bottom:6px">Tipo de carta (sem escolher é normal)</label><div class="tipos" id="tipos2"></div></div>
+<button class="go full" type="submit">Guardar alterações</button>
+</form>
+</div>
+</div>
 <button class="fab" id="fab" aria-label="Calcular preço de venda"><svg viewBox="0 0 24 24"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></button>
 <div class="pop" id="pop" hidden role="dialog" aria-modal="true" aria-labelledby="pt">
 <div class="sheet">
@@ -255,7 +285,7 @@ h1{background:linear-gradient(90deg,#f7e08a,#f2cf6b 45%,#19f08a);-webkit-backgro
 <script>
 const KEY='fc27-trades',CK='fc27-cat';
 const ld=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
-let trades=ld(KEY,[]),cat=ld(CK,{}),corte=0,sessao=0,cal=null,vista='ov',ant='ov',diaAb=null,rm=null,editK=null,editV='',fotoPara=null,AG={},PD={},HOJE='';
+let trades=ld(KEY,[]),cat=ld(CK,{}),corte=0,sessao=0,cal=null,vista='ov',ant='ov',diaAb=null,rm=null,editK=null,editV='',editT='',fotoPara=null,AG={},PD={},HOJE='';
 try{corte=+localStorage.getItem('fc27-corte')||0}catch(e){}
 try{sessao=+localStorage.getItem('fc27-sessao')||0}catch(e){}
 
@@ -341,7 +371,7 @@ function dups(keys){
 function renderHoje(){
   const ss=trades.filter(t=>dk(t.data)===HOJE&&new Date(t.data).getTime()>=sessao).sort((a,b)=>a.data<b.data?1:-1);
   $('hjT').textContent='Vendas desta sessão'+(ss.length?' ('+ss.length+')':'');
-  $('hj').innerHTML=ss.length?ss.map(t=>`<div class="row"><div class="tx"><b>${esc(t.nome)}</b></div><span class="cm"><small>Comprado por</small><b>${num(t.compra)}</b></span><button class="x" data-cp="${esc(t.nome)}">Copiar nome</button></div>`).join(''):vazio('Nenhum jogador nesta sessão. Regista uma venda e aparece aqui.');
+  $('hj').innerHTML=ss.length?ss.map(t=>`<div class="row"><div class="tx"><b>${esc(t.nome)}</b>${bdg(t)}</div><span class="cm"><small>Comprado por</small><b>${num(t.compra)}</b></span><button class="x" data-ed2="${t.id}" aria-label="Editar venda">✎</button><button class="x" data-cp="${esc(t.nome)}">Copiar nome</button></div>`).join(''):vazio('Nenhum jogador nesta sessão. Regista uma venda e aparece aqui.');
   $('nsess').hidden=!ss.length;
 }
 function renderJog(arr){
@@ -349,24 +379,71 @@ function renderJog(arr){
   $('jt').textContent=keys.length+(keys.length===1?' jogador':' jogadores');
   const ds=dups(keys);
   $('dupBox').innerHTML=ds.length?`<div class="card warn"><h2>Possíveis repetidos (${ds.length})</h2>${ds.map((p,i)=>`<div class="row"><div class="tx"><b>${esc(p[0])}</b><small>parece o mesmo que ${esc(p[1])}</small></div><button class="x" data-j="${i}">Juntar</button></div>`).join('')}</div>`:'';
-  window._ds=ds;
+  window._ds=ds;$('dupBox').innerHTML=sepCard(keys)+$('dupBox').innerHTML;
   const q=norm($('busca').value),m=Object.fromEntries(arr.map(p=>[p.k,p]));
   const L=keys.filter(k=>norm(k).includes(q));
   $('jl').innerHTML=L.length?L.map(k=>{
-    if(editK===k)return `<div class="row"><input id="en" value="${esc(editV)}" autocomplete="off" aria-label="Novo nome" style="margin:0"><button class="x" data-eok>Guardar</button><button class="x" data-eno aria-label="Cancelar">×</button></div>`;
+    if(editK===k)return `<div class="row" style="flex-wrap:wrap"><input id="en" value="${esc(editV)}" autocomplete="off" aria-label="Novo nome" style="margin:0;flex:1 1 100%"><select id="et" aria-label="Tipo de carta" style="margin:0;flex:1">${[['','Não mexer no tipo'],['normal','Normal'],...TIPOS.map(x=>[x.id,x.n])].map(o=>`<option value="${o[0]}" ${editT===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select><button class="x" data-eok>Guardar</button><button class="x" data-eno aria-label="Cancelar">×</button></div>`;
     const p=m[k],armado=rm==='p'+k;
     return `<div class="row"><div class="tx"><b>${esc(k)}</b></div><button class="x" data-ed="${esc(k)}">Mudar nome</button><button class="x ${armado?'arm':''}" data-rm="${esc(k)}">${armado?(p&&p.n?'Apagar + '+p.n+' vendas?':'Apagar?'):'Remover'}</button></div>`}).join(''):vazio('Nenhum jogador encontrado.');
   $('nomes').innerHTML=keys.map(k=>`<option value="${esc(k)}">`).join('');
 }
+const TIPOS=[{id:'inf',n:'Inform'},{id:'infh',n:'Inform Holo'},{id:'fs',n:'Future Stars'},{id:'fsh',n:'Future Stars Holo'},{id:'hero',n:'Hero'},{id:'heroh',n:'Hero Holo'},{id:'outra',n:'Outra'}];
+let tipoSel='';
+const bdg=t=>{const x=TIPOS.find(y=>y.id===t.tipo);return x?`<span class="bd t-${x.id}">${x.n}</span>`:''};
+function renderTipos(){$('tipos').innerHTML=TIPOS.map(t=>`<button type="button" class="tp t-${t.id}" data-tp="${t.id}" aria-pressed="${tipoSel===t.id}">${t.n}</button>`).join('')}
+let editId=null,tipoEd='';
+function renderTipos2(){$('tipos2').innerHTML=TIPOS.map(t=>`<button type="button" class="tp t-${t.id}" data-tp2="${t.id}" aria-pressed="${tipoEd===t.id}">${t.n}</button>`).join('')}
+function abreEdit(id){
+  const t=trades.find(x=>String(x.id)===String(id));if(!t)return;
+  editId=t.id;$('en2').value=t.nome;$('ev').value=t.venda;$('el').value=lucro(t);tipoEd=t.tipo||'';
+  renderTipos2();$('pe').hidden=false;
+}
+$('fe').onsubmit=e=>{
+  e.preventDefault();
+  const t=trades.find(x=>x.id===editId);if(!t){$('pe').hidden=true;return}
+  const p=parse($('en2').value);if(!p.nome)return;
+  t.nome=p.nome;t.venda=+$('ev').value;t.compra=Math.floor(t.venda*0.95)-(+$('el').value);t.tipo=tipoEd;
+  cat[t.nome]=cat[t.nome]||{};
+  save();$('pe').hidden=true;refresh();
+};
+$('pecl').onclick=()=>{$('pe').hidden=true};
+$('pe').onclick=e=>{if(e.target.id==='pe')$('pe').hidden=true};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('pe').hidden=true});
 function renomeia(){
   const k=editK,nv=parse(editV).nome;
-  if(!k||!nv||nv===k){editK=null;render();return}
-  trades.forEach(t=>{if(lab(t)===k)t.nome=nv});
-  cat[nv]=Object.assign({},cat[nv]||{},cat[k]||{});delete cat[k];
-  editK=null;save();render();
+  if(!k||!nv||(nv===k&&!editT)){editK=null;editT='';render();return}
+  trades.forEach(t=>{if(lab(t)===k){t.nome=nv;if(editT)t.tipo=editT==='normal'?'':editT}});
+  if(nv!==k){cat[nv]=Object.assign({},cat[nv]||{},cat[k]||{});delete cat[k]}
+  editK=null;editT='';save();render();
 }
+document.addEventListener('change',e=>{if(e.target.id==='et')editT=e.target.value});
 document.addEventListener('input',e=>{if(e.target.id==='en')editV=e.target.value});
 document.addEventListener('keydown',e=>{if(e.target.id==='en'&&e.key==='Enter'){e.preventDefault();renomeia()}});
+function guessTipo(n){
+  const x=norm(n);let b='';
+  if(/f[iu]+ture\s*stars?|\bfs\b/.test(x))b='fs';
+  else if(/in\s?form|\bif\b|\btotw\b/.test(x))b='inf';
+  else if(/\bheroe?s?\b/.test(x))b='hero';
+  if(b&&/holo/.test(x))b+='h';
+  return b;
+}
+function limpaNome(n){
+  return n.replace(/f[iu]+ture\s*stars?|\bfs\b|in\s?form|\bif\b|\btotw\b|\bheroe?s?\b|holo\w*|\bnormal\b/gi,' ').replace(/[·\-–()]+/g,' ').replace(/\s+/g,' ').trim();
+}
+function sepLista(keys){return keys.map(k=>({k,nv:limpaNome(k),t:guessTipo(k)})).filter(x=>x.nv&&x.nv!==x.k)}
+function sepCard(keys){
+  const L=sepLista(keys);if(!L.length)return '';
+  return `<div class="card warn"><h2>Separar tipo de carta (${L.length})</h2><p class="note" style="margin:0 0 8px">Estes nomes têm o tipo de carta escrito no nome. Posso deixar só o nome e passar o tipo para as vendas.</p>${L.slice(0,6).map(x=>`<div class="row"><div class="tx"><b>${esc(x.k)}</b><small>fica ${esc(x.nv)}</small></div>${x.t?`<span class="bd t-${x.t}" style="margin:0">${(TIPOS.find(y=>y.id===x.t)||{}).n||''}</span>`:''}</div>`).join('')}${L.length>6?`<p class="note">…e mais ${L.length-6}.</p>`:''}<button class="go" data-sepall style="margin-top:10px">Aplicar a todos</button></div>`;
+}
+function separaTodos(){
+  const keys=[...new Set([...Object.keys(cat),...Object.keys(AG)])];
+  sepLista(keys).forEach(x=>{
+    trades.forEach(t=>{if(lab(t)===x.k){t.nome=x.nv;if(x.t)t.tipo=x.t}});
+    cat[x.nv]=Object.assign({},cat[x.nv]||{},cat[x.k]||{});delete cat[x.k];
+  });
+  save();render();
+}
 function migraCat(){
   const n={};
   Object.keys(cat).forEach(k=>{const nm=parse(k).nome,c=(cat[k]&&typeof cat[k]==='object')?cat[k]:{};delete c.foto;n[nm]=Object.assign({},n[nm]||{},c)});
@@ -396,7 +473,7 @@ function abreDia(k,keep){
   $('dt').textContent=cap(kd(k).toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long'}));
   $('d1').textContent=fmt(tot);$('d1').className='big '+cls(tot);
   $('d2').textContent=ts.length;$('d3').textContent=ts.length?fmt(tot/ts.length):'0';
-  $('dl').innerHTML=ts.length?ts.map(t=>{const g=lab(t),armado=rm==='v'+t.id;return `<div class="row">${av(g)}<div class="tx"><b>${esc(g)}</b><small>Vendido por ${num(t.venda)} · ${new Date(t.data).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}</small></div><b class="${cls(lucro(t))}">${fmt(lucro(t))}</b><button class="x ${armado?'arm':''}" data-id="${t.id}" aria-label="Apagar venda">${armado?'Apagar?':'×'}</button></div>`}).join(''):vazio('Sem vendas neste dia.');
+  $('dl').innerHTML=ts.length?ts.map(t=>{const g=lab(t),armado=rm==='v'+t.id;return `<div class="row">${av(g)}<div class="tx"><b>${esc(g)}</b>${bdg(t)}<small>Vendido por ${num(t.venda)} · ${new Date(t.data).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}</small></div><b class="${cls(lucro(t))}">${fmt(lucro(t))}</b><button class="x" data-ed2="${t.id}" aria-label="Editar venda">✎</button><button class="x ${armado?'arm':''}" data-id="${t.id}" aria-label="Apagar venda">${armado?'Apagar?':'×'}</button></div>`}).join(''):vazio('Sem vendas neste dia.');
   if(!keep)ir('dd');
 }
 
@@ -412,7 +489,11 @@ document.addEventListener('click',e=>{
   else if(t.dataset.usa){$('pb').value=t.dataset.usa;renderPreco()}
   else if(t.dataset.sel){pSel=+t.dataset.sel;renderPreco()}
   else if(t.dataset.sg!==undefined){escolhe(t.dataset.sg)}
-  else if(t.dataset.ed!==undefined){editK=t.dataset.ed;editV=editK;render();setTimeout(()=>{const i=$('en');if(i){i.focus();i.select()}},0)}
+  else if(t.dataset.tp!==undefined){tipoSel=tipoSel===t.dataset.tp?'':t.dataset.tp;renderTipos()}
+  else if(t.dataset.ed2!==undefined){abreEdit(t.dataset.ed2)}
+  else if(t.dataset.sepall!==undefined){separaTodos()}
+  else if(t.dataset.tp2!==undefined){tipoEd=tipoEd===t.dataset.tp2?'':t.dataset.tp2;renderTipos2()}
+  else if(t.dataset.ed!==undefined){editK=t.dataset.ed;editV=limpaNome(editK)||editK;editT=guessTipo(editK);render();setTimeout(()=>{const i=$('en');if(i){i.focus();i.select()}},0)}
   else if(t.dataset.eok!==undefined){renomeia()}
   else if(t.dataset.eno!==undefined){editK=null;render()}
   else if(t.dataset.cp!==undefined){const b=t;copiar(t.dataset.cp).then(ok=>{b.textContent=ok?'Copiado ✓':'Erro';setTimeout(()=>{b.textContent='Copiar nome'},1500)})}
@@ -425,7 +506,7 @@ $('cp').onclick=()=>{cal.m--;if(cal.m<0){cal.m=11;cal.y--}render()};
 $('cn').onclick=()=>{cal.m++;if(cal.m>11){cal.m=0;cal.y++}render()};
 function prev(){const l=$('lucro').value,v=+$('venda').value;$('prev').textContent=(l!==''&&v)?'Compra estimada: '+num(Math.floor(v*0.95)-(+l))+' moedas':''}
 $('lucro').oninput=prev;$('venda').oninput=prev;
-$('f').onsubmit=e=>{e.preventDefault();const p=parse($('nome').value);trades.push({id:Date.now()+Math.random(),...p,compra:Math.floor(+$('venda').value*0.95)-(+$('lucro').value),venda:+$('venda').value,data:new Date().toISOString()});const k=lab(p);cat[k]=cat[k]||{};save();e.target.reset();prev();render();$('sug').hidden=true;$('prev').textContent='Venda guardada ✓'};
+$('f').onsubmit=e=>{e.preventDefault();const p=parse($('nome').value);trades.push({id:Date.now()+Math.random(),...p,tipo:tipoSel,compra:Math.floor(+$('venda').value*0.95)-(+$('lucro').value),venda:+$('venda').value,data:new Date().toISOString()});const k=lab(p);cat[k]=cat[k]||{};save();e.target.reset();tipoSel='';renderTipos();prev();render();$('sug').hidden=true;$('prev').textContent='Venda guardada ✓'};
 $('fj').onsubmit=e=>{e.preventDefault();const p={nome:$('pn').value.trim(),rating:0,pos:''},k=lab(p);if(p.nome){cat[k]=cat[k]||{};save();e.target.reset();render()}};
 function dupla(id,fn){const b=$(id),t0=b.textContent;let a=0,tm;b.onclick=()=>{if(a){clearTimeout(tm);a=0;b.textContent=t0;fn();return}a=1;b.textContent='Toca de novo';tm=setTimeout(()=>{a=0;b.textContent=t0},4000)}}
 dupla('novo',()=>{corte=Date.now();sessao=corte;save();render()});
@@ -540,7 +621,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)limpaCalc()
 window.addEventListener('pagehide',limpaCalc);
 try{['fc27-gkey','fc27-gmodel','fc27-lista'].forEach(k=>localStorage.removeItem(k))}catch(e){}
 setInterval(()=>{if(editK===null)render()},6e4);document.addEventListener('visibilitychange',()=>{if(editK===null)render()});
-migraCat();save();render();ir('ov');
+renderTipos();migraCat();save();render();ir('ov');
 </script>
 </body>
 </html>
