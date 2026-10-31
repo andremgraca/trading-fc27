@@ -152,13 +152,15 @@ h1{background:linear-gradient(90deg,#f7e08a,#f2cf6b 45%,#19f08a);-webkit-backgro
 .t-inf{background:#0c0c11;border-color:#d9b44a;color:#f2cf6b}
 .t-fs{background:linear-gradient(135deg,#5b2fe0,#8f5bff)}
 .t-hero{background:linear-gradient(135deg,#7a1fa8,#c13fd0)}
+.t-dfg{background:linear-gradient(135deg,#0a4f63,#139a97);border-color:#d8b25a}
+.t-dfgh{background-image:linear-gradient(110deg,#0a4f63 18%,#139a97 32%,#ffe9a8 45%,#5ff0d0 56%,#139a97 68%,#0a4f63 82%);border-color:#d8b25a}
 .t-outra{background:var(--card2);color:var(--ink);border-color:var(--line)}
-.t-infh,.t-fsh,.t-heroh{background-size:230% 100%;animation:holo 3.2s linear infinite}
+.t-infh,.t-fsh,.t-heroh,.t-dfgh{background-size:230% 100%;animation:holo 3.2s linear infinite}
 .t-infh{background-image:linear-gradient(110deg,#0c0c11 18%,#3b6cff 33%,#19f08a 44%,#ffd25a 55%,#ff5dc8 66%,#0c0c11 82%);border-color:#d9b44a}
 .t-fsh{background-image:linear-gradient(110deg,#5b2fe0 18%,#8f5bff 32%,#ffffff 45%,#19c6ff 56%,#8f5bff 68%,#5b2fe0 82%)}
 .t-heroh{background-image:linear-gradient(110deg,#7a1fa8 18%,#c13fd0 32%,#ffe1ff 45%,#ffd25a 56%,#c13fd0 68%,#7a1fa8 82%)}
 @keyframes holo{to{background-position:-230% 0}}
-@media (prefers-reduced-motion:reduce){.t-infh,.t-fsh,.t-heroh{animation:none}}
+@media (prefers-reduced-motion:reduce){.t-infh,.t-fsh,.t-heroh,.t-dfgh{animation:none}}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -285,7 +287,7 @@ h1{background:linear-gradient(90deg,#f7e08a,#f2cf6b 45%,#19f08a);-webkit-backgro
 <script>
 const KEY='fc27-trades',CK='fc27-cat';
 const ld=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
-let trades=ld(KEY,[]),cat=ld(CK,{}),corte=0,sessao=0,cal=null,vista='ov',ant='ov',diaAb=null,rm=null,editK=null,editV='',editT='',fotoPara=null,AG={},PD={},HOJE='';
+let trades=ld(KEY,[]),cat=ld(CK,{}),corte=0,sessao=0,cal=null,vista='ov',ant='ov',diaAb=null,rm=null,editK=null,editV='',editT='',editMixed=false,fotoPara=null,AG={},PD={},HOJE='';
 try{corte=+localStorage.getItem('fc27-corte')||0}catch(e){}
 try{sessao=+localStorage.getItem('fc27-sessao')||0}catch(e){}
 
@@ -383,13 +385,19 @@ function renderJog(arr){
   const q=norm($('busca').value),m=Object.fromEntries(arr.map(p=>[p.k,p]));
   const L=keys.filter(k=>norm(k).includes(q));
   $('jl').innerHTML=L.length?L.map(k=>{
-    if(editK===k)return `<div class="row" style="flex-wrap:wrap"><input id="en" value="${esc(editV)}" autocomplete="off" aria-label="Novo nome" style="margin:0;flex:1 1 100%"><select id="et" aria-label="Tipo de carta" style="margin:0;flex:1">${[['','Não mexer no tipo'],['normal','Normal'],...TIPOS.map(x=>[x.id,x.n])].map(o=>`<option value="${o[0]}" ${editT===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select><button class="x" data-eok>Guardar</button><button class="x" data-eno aria-label="Cancelar">×</button></div>`;
+    if(editK===k)return `<div class="row" style="flex-wrap:wrap"><input id="en" value="${esc(editV)}" autocomplete="off" aria-label="Novo nome" style="margin:0;flex:1 1 100%"><select id="et" aria-label="Tipo de carta" style="margin:0;flex:1">${[...(editMixed?[['manter','Vários tipos (manter)']]:[]),['normal','Ouro (normal)'],...TIPOS.map(x=>[x.id,x.n])].map(o=>`<option value="${o[0]}" ${editT===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select><button class="x" data-eok>Guardar</button><button class="x" data-eno aria-label="Cancelar">×</button></div>`;
     const p=m[k],armado=rm==='p'+k;
-    return `<div class="row"><div class="tx"><b>${esc(k)}</b></div><button class="x" data-ed="${esc(k)}">Mudar nome</button><button class="x ${armado?'arm':''}" data-rm="${esc(k)}">${armado?(p&&p.n?'Apagar + '+p.n+' vendas?':'Apagar?'):'Remover'}</button></div>`}).join(''):vazio('Nenhum jogador encontrado.');
+    return `<div class="row"><div class="tx"><b>${esc(k)}</b>${tiposDe(k)}</div><button class="x" data-ed="${esc(k)}">Editar</button><button class="x ${armado?'arm':''}" data-rm="${esc(k)}">${armado?(p&&p.n?'Apagar + '+p.n+' vendas?':'Apagar?'):'Remover'}</button></div>`}).join(''):vazio('Nenhum jogador encontrado.');
   $('nomes').innerHTML=keys.map(k=>`<option value="${esc(k)}">`).join('');
 }
-const TIPOS=[{id:'inf',n:'Inform'},{id:'infh',n:'Inform Holo'},{id:'fs',n:'Future Stars'},{id:'fsh',n:'Future Stars Holo'},{id:'hero',n:'Hero'},{id:'heroh',n:'Hero Holo'},{id:'outra',n:'Outra'}];
+const TIPOS=[{id:'inf',n:'Inform'},{id:'infh',n:'Inform Holo'},{id:'fs',n:'Future Stars'},{id:'fsh',n:'Future Stars Holo'},{id:'hero',n:'Hero'},{id:'heroh',n:'Hero Holo'},{id:'dfg',n:'Destined for Glory'},{id:'dfgh',n:'Destined for Glory Holo'},{id:'outra',n:'Outra'}];
 let tipoSel='';
+const tiposDe=k=>[...new Set(trades.filter(t=>lab(t)===k&&t.tipo).map(t=>t.tipo))].map(id=>bdg({tipo:id})).join(' ');
+function initEditT(k){
+  const ts=[...new Set(trades.filter(t=>lab(t)===k).map(t=>t.tipo||''))],g=guessTipo(k);
+  editMixed=ts.length>1;
+  editT=g||(ts.length>1?'manter':(ts[0]||'normal'));
+}
 const bdg=t=>{const x=TIPOS.find(y=>y.id===t.tipo);return x?`<span class="bd t-${x.id}">${x.n}</span>`:''};
 function renderTipos(){$('tipos').innerHTML=TIPOS.map(t=>`<button type="button" class="tp t-${t.id}" data-tp="${t.id}" aria-pressed="${tipoSel===t.id}">${t.n}</button>`).join('')}
 let editId=null,tipoEd='';
@@ -412,8 +420,8 @@ $('pe').onclick=e=>{if(e.target.id==='pe')$('pe').hidden=true};
 document.addEventListener('keydown',e=>{if(e.key==='Escape')$('pe').hidden=true});
 function renomeia(){
   const k=editK,nv=parse(editV).nome;
-  if(!k||!nv||(nv===k&&!editT)){editK=null;editT='';render();return}
-  trades.forEach(t=>{if(lab(t)===k){t.nome=nv;if(editT)t.tipo=editT==='normal'?'':editT}});
+  if(!k||!nv){editK=null;editT='';render();return}
+  trades.forEach(t=>{if(lab(t)===k){t.nome=nv;if(editT&&editT!=='manter')t.tipo=editT==='normal'?'':editT}});
   if(nv!==k){cat[nv]=Object.assign({},cat[nv]||{},cat[k]||{});delete cat[k]}
   editK=null;editT='';save();render();
 }
@@ -422,14 +430,15 @@ document.addEventListener('input',e=>{if(e.target.id==='en')editV=e.target.value
 document.addEventListener('keydown',e=>{if(e.target.id==='en'&&e.key==='Enter'){e.preventDefault();renomeia()}});
 function guessTipo(n){
   const x=norm(n);let b='';
-  if(/f[iu]+ture\s*stars?|\bfs\b/.test(x))b='fs';
+  if(/destined\s*for\s*glory|\bdfg\b/.test(x))b='dfg';
+  else if(/f[iu]+ture\s*stars?|\bfs\b/.test(x))b='fs';
   else if(/in\s?form|\bif\b|\btotw\b/.test(x))b='inf';
   else if(/\bheroe?s?\b/.test(x))b='hero';
   if(b&&/holo/.test(x))b+='h';
   return b;
 }
 function limpaNome(n){
-  return n.replace(/f[iu]+ture\s*stars?|\bfs\b|in\s?form|\bif\b|\btotw\b|\bheroe?s?\b|holo\w*|\bnormal\b/gi,' ').replace(/[·\-–()]+/g,' ').replace(/\s+/g,' ').trim();
+  return n.replace(/destined\s*for\s*glory|\bdfg\b|f[iu]+ture\s*stars?|\bfs\b|in\s?form|\bif\b|\btotw\b|\bheroe?s?\b|holo\w*|\bnormal\b/gi,' ').replace(/[·\-–()]+/g,' ').replace(/\s+/g,' ').trim();
 }
 function sepLista(keys){return keys.map(k=>({k,nv:limpaNome(k),t:guessTipo(k)})).filter(x=>x.nv&&x.nv!==x.k)}
 function sepCard(keys){
@@ -493,7 +502,7 @@ document.addEventListener('click',e=>{
   else if(t.dataset.ed2!==undefined){abreEdit(t.dataset.ed2)}
   else if(t.dataset.sepall!==undefined){separaTodos()}
   else if(t.dataset.tp2!==undefined){tipoEd=tipoEd===t.dataset.tp2?'':t.dataset.tp2;renderTipos2()}
-  else if(t.dataset.ed!==undefined){editK=t.dataset.ed;editV=limpaNome(editK)||editK;editT=guessTipo(editK);render();setTimeout(()=>{const i=$('en');if(i){i.focus();i.select()}},0)}
+  else if(t.dataset.ed!==undefined){editK=t.dataset.ed;editV=limpaNome(editK)||editK;initEditT(editK);render();setTimeout(()=>{const i=$('en');if(i){i.focus();i.select()}},0)}
   else if(t.dataset.eok!==undefined){renomeia()}
   else if(t.dataset.eno!==undefined){editK=null;render()}
   else if(t.dataset.cp!==undefined){const b=t;copiar(t.dataset.cp).then(ok=>{b.textContent=ok?'Copiado ✓':'Erro';setTimeout(()=>{b.textContent='Copiar nome'},1500)})}
